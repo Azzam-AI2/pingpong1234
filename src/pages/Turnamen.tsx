@@ -1,0 +1,338 @@
+import { useMemo, useState } from 'react'
+import { useApp } from '../state/AppContext'
+import { Input, Kartu, Kolom, Konfirmasi, Kosong, Lencana, Modal, Segmen, Tombol } from '../components/ui'
+import type { BestOf, KnockoutFormat, TargetPoints, Tournament, TournamentStatus } from '../lib/types'
+import { formatTanggal, todayISO, uid } from '../lib/utils'
+import { keHash, type NamaHalaman } from '../lib/router'
+import { pemenangTurnamen } from '../lib/knockout'
+import { americanoStandings } from '../lib/americano'
+
+interface FormTurnamen {
+  name: string
+  date: string
+  type: Tournament['type']
+  format: KnockoutFormat
+  best_of: BestOf
+  target_points: TargetPoints
+  match_duration_min: string
+}
+
+const FORM_AWAL: FormTurnamen = {
+  name: '',
+  date: todayISO(),
+  type: 'knockout',
+  format: 'single',
+  best_of: 3,
+  target_points: 21,
+  match_duration_min: '',
+}
+
+export function lencanaStatus(status: TournamentStatus) {
+  if (status === 'draft') return <Lencana>Draft</Lencana>
+  if (status === 'ongoing') return <Lencana warna="biru">Berlangsung</Lencana>
+  return <Lencana warna="hijau">Selesai</Lencana>
+}
+
+export default function Turnamen({ pindah }: { pindah: (h: NamaHalaman, id?: string) => void }) {
+  const { snapshot, klubAktif, simpanTurnamen, hapusTurnamen, sibuk, pesan } = useApp()
+  const [form, setForm] = useState<FormTurnamen | null>(null)
+  const [galat, setGalat] = useState<string | null>(null)
+  const [filter, setFilter] = useState<'semua' | TournamentStatus>('semua')
+  const [konfirmasi, setKonfirmasi] = useState<string | null>(null)
+
+  const daftar = useMemo(() => {
+    if (!klubAktif) return []
+    return snapshot.tournaments
+      .filter((t) => t.club_id === klubAktif.id)
+      .filter((t) => filter === 'semua' || t.status === filter)
+      .slice()
+      .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
+  }, [snapshot.tournaments, klubAktif, filter])
+
+  const infoTurnamen = (t: Tournament) => {
+    const peserta = snapshot.participants.filter((p) => p.tournament_id === t.id)
+    const jumlahMatch = snapshot.knockout_matches.filter((m) => m.tournament_id === t.id).length +
+      snapshot.americano_matches.filter((m) => m.tournament_id === t.id).length
+    let juara: string | null = null
+    if (t.status === 'finished') {
+      if (t.type === 'knockout') {
+        const ms = snapshot.knockout_matches.filter((m) => m.tournament_id === t.id)
+        const id = pemenangTurnamen(ms, t.best_of ?? 3)
+        juara = peserta.find((p) => p.id === id)?.label ?? null
+      } else {
+        const ms = snapshot.americano_matches.filter((m) => m.tournament_id === t.id)
+        const pemain = new Set<string>()
+        for (const m of ms) for (const id of [...m.team_a, ...m.team_b]) pemain.add(id)
+        const klasemen = americanoStandings([...pemain], ms)
+        const juaraIds = klasemen.filter((k) => k.rank === 1 && k.matches > 0).map((k) => k.memberId)
+        juara = juaraIds
+          .map((id) => snapshot.members.find((m) => m.id === id)?.name ?? '?')
+          .join(' & ') || null
+      }
+    }
+    return { peserta, jumlahMatch, juara }
+  }
+
+  const kirim = async () => {
+    if (!form || !klubAktif) return
+    if (!form.name.trim()) {
+      setGalat('Nama turnamen wajib diisi.')
+      return
+    }
+    if (!form.date) {
+      setGalat('Tanggal wajib diisi.')
+      return
+    }
+    const durasi = form.match_duration_min.trim() === '' ? null : Number(form.match_duration_min)
+    if (durasi !== null && (!Number.isInteger(durasi) || durasi < 1 || durasi > 120)) {
+      setGalat('Durasi pertandingan harus 1-120 menit (atau kosongkan).')
+      return
+    }
+    setGalat(null)
+    const id = uid()
+    const ok = await simpanTurnamen({
+      id,
+      club_id: klubAktif.id,
+      name: form.name,
+      date: form.date,
+      type: form.type,
+      format: form.type === 'knockout' ? form.format : null,
+      best_of: form.type === 'knockout' ? form.best_of : null,
+      target_points: form.type === 'americano' ? form.target_points : null,
+      match_duration_min: form.type === 'americano' ? durasi : null,
+    })
+    if (ok) {
+      setForm(null)
+      pindah('detail', id)
+    }
+  }
+
+  if (!klubAktif) {
+    return (
+      <Kosong
+        judul="Belum ada klub"
+        pesan="Buat klub dulu di menu Klub & Anggota sebelum membuat turnamen."
+        aksi={
+          <a href={keHash('klub')}>
+            <Tombol>Buka menu Klub</Tombol>
+          </a>
+        }
+      />
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-lg font-semibold text-slate-100">
+          Turnamen <span className="text-sm font-normal text-slate-400">· {klubAktif.name}</span>
+        </h1>
+        <Tombol
+          onClick={() => {
+            setGalat(null)
+            setForm({ ...FORM_AWAL })
+          }}
+        >
+          + Turnamen baru
+        </Tombol>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {(
+          [
+            ['semua', 'Semua'],
+            ['draft', 'Draft'],
+            ['ongoing', 'Berlangsung'],
+            ['finished', 'Selesai'],
+          ] as const
+        ).map(([nilai, label]) => (
+          <button
+            key={nilai}
+            type="button"
+            onClick={() => setFilter(nilai)}
+            className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
+              filter === nilai ? 'bg-brand-600 text-white' : 'bg-white/5 text-slate-300 hover:bg-white/10'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {daftar.length ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {daftar.map((t) => {
+            const info = infoTurnamen(t)
+            return (
+              <Kartu key={t.id}>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-slate-100">{t.name}</p>
+                    <p className="text-xs text-slate-400">{formatTanggal(t.date)}</p>
+                  </div>
+                  {lencanaStatus(t.status)}
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  <Lencana warna={t.type === 'knockout' ? 'biru' : 'kuning'}>
+                    {t.type === 'knockout' ? 'Knockout' : 'Americano'}
+                  </Lencana>
+                  {t.type === 'knockout' ? (
+                    <>
+                      <Lencana>{t.format === 'double' ? 'Double' : 'Single'}</Lencana>
+                      <Lencana>Best of {t.best_of}</Lencana>
+                    </>
+                  ) : (
+                    <>
+                      <Lencana>Target {t.target_points} poin</Lencana>
+                      {t.match_duration_min && <Lencana>{t.match_duration_min} menit</Lencana>}
+                    </>
+                  )}
+                </div>
+                <p className="mt-2 text-xs text-slate-400">
+                  {info.peserta.length} peserta · {info.jumlahMatch} pertandingan
+                </p>
+                {info.juara && (
+                  <p className="mt-1 text-sm text-amber-200">🏆 Juara: {info.juara}</p>
+                )}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Tombol kecil onClick={() => pindah('detail', t.id)}>
+                    Buka
+                  </Tombol>
+                  <Tombol kecil variasi="bahaya" onClick={() => setKonfirmasi(t.id)}>
+                    Hapus
+                  </Tombol>
+                </div>
+              </Kartu>
+            )
+          })}
+        </div>
+      ) : (
+        <Kosong
+          judul="Belum ada turnamen"
+          pesan="Buat turnamen knockout (sistem gugur) atau Americano (rotasi pasangan dengan poin individu)."
+          aksi={
+            <Tombol onClick={() => setForm({ ...FORM_AWAL })}>Buat turnamen</Tombol>
+          }
+        />
+      )}
+
+      <Modal
+        judul="Turnamen baru"
+        terbuka={form !== null}
+        onTutup={() => setForm(null)}
+        aksi={
+          <>
+            <Tombol variasi="sekunder" onClick={() => setForm(null)}>
+              Batal
+            </Tombol>
+            <Tombol onClick={kirim} disabled={sibuk}>
+              Buat turnamen
+            </Tombol>
+          </>
+        }
+      >
+        <Kolom label="Nama turnamen" wajib>
+          <Input
+            value={form?.name ?? ''}
+            onChange={(e) => form && setForm({ ...form, name: e.target.value })}
+            placeholder="Contoh: Turnamen Internal Oktober"
+            maxLength={80}
+          />
+        </Kolom>
+        <Kolom label="Tanggal" wajib>
+          <Input
+            type="date"
+            value={form?.date ?? ''}
+            onChange={(e) => form && setForm({ ...form, date: e.target.value })}
+          />
+        </Kolom>
+        <Kolom label="Jenis turnamen" wajib>
+          <Segmen
+            nilai={form?.type ?? 'knockout'}
+            opsi={[
+              { nilai: 'knockout' as const, label: 'Knockout' },
+              { nilai: 'americano' as const, label: 'Americano' },
+            ]}
+            onPilih={(v) => form && setForm({ ...form, type: v })}
+          />
+        </Kolom>
+
+        {form === null ? null : form.type === 'knockout' ? (
+          <>
+            <Kolom label="Format peserta" wajib>
+              <Segmen<KnockoutFormat>
+                nilai={form.format}
+                opsi={[
+                  { nilai: 'single', label: 'Single' },
+                  { nilai: 'double', label: 'Double' },
+                ]}
+                onPilih={(v) => setForm({ ...form, format: v })}
+              />
+            </Kolom>
+            <Kolom label="Best of" wajib>
+              <Segmen<BestOf>
+                nilai={form.best_of}
+                opsi={[
+                  { nilai: 3, label: 'Best of 3' },
+                  { nilai: 5, label: 'Best of 5' },
+                ]}
+                onPilih={(v) => setForm({ ...form, best_of: v })}
+              />
+            </Kolom>
+          </>
+        ) : (
+          <>
+            <Kolom label="Target poin per pertandingan" wajib>
+              <Segmen<TargetPoints>
+                nilai={form.target_points}
+                opsi={[
+                  { nilai: 11, label: '11' },
+                  { nilai: 15, label: '15' },
+                  { nilai: 21, label: '21' },
+                  { nilai: 24, label: '24' },
+                ]}
+                onPilih={(v) => setForm({ ...form, target_points: v })}
+              />
+            </Kolom>
+            <Kolom label="Durasi pertandingan (menit)" petunjuk="Opsional. Kalau diisi, muncul timer di tiap ronde.">
+              <Input
+                inputMode="numeric"
+                value={form.match_duration_min}
+                onChange={(e) =>
+                  setForm({ ...form, match_duration_min: e.target.value.replace(/[^0-9]/g, '') })
+                }
+                placeholder="mis. 10"
+              />
+            </Kolom>
+          </>
+        )}
+
+        {galat && <p className="text-sm text-rose-400">{galat}</p>}
+      </Modal>
+
+      <Konfirmasi
+        terbuka={konfirmasi !== null}
+        judul="Hapus turnamen?"
+        pesan={
+          konfirmasi ? (
+            <>
+              Turnamen <b>{snapshot.tournaments.find((t) => t.id === konfirmasi)?.name}</b> beserta peserta,
+              jadwal, dan seluruh hasil pertandingannya akan dihapus permanen.
+            </>
+          ) : (
+            ''
+          )
+        }
+        teksYa="Hapus turnamen"
+        onBatal={() => setKonfirmasi(null)}
+        onYa={async () => {
+          const id = konfirmasi
+          setKonfirmasi(null)
+          if (!id) return
+          const ok = await hapusTurnamen(id)
+          if (ok) pesan('Turnamen dihapus.', 'sukses')
+        }}
+      />
+    </div>
+  )
+}
