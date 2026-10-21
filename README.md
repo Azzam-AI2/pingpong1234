@@ -160,3 +160,9 @@ URL tidak dapat dihubungi menampilkan banner galat merah, dan kunci `service_rol
   Muat ulang halaman untuk melihat perubahan terbaru.
 - Timer pertandingan adalah alat bantu tampilan; hitungannya tidak disimpan ke database.
 - Belum ada: pembayaran, chat, notifikasi, analitik, login (sengaja di luar lingkup MVP).
+
+## 8. Rencana berikutnya
+
+- **Mode Liga** — sudah ada spesifikasinya di [`docs/mode-liga.md`](docs/mode-liga.md), dikerjakan
+  setelah integrasi Supabase selesai. Akan dibuat sebagai modul terpisah (tabel `leagues`,
+  `league_rounds`, `league_matches`) tanpa mengubah Knockout dan Americano yang sudah jalan.
