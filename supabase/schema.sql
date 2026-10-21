@@ -1,6 +1,11 @@
 -- ============================================================================
 -- Pingpong Club Manager — skema database Supabase
 -- ============================================================================
+-- ⚠️ FILE BASELINE (versi awal tanpa login). JANGAN dipakai untuk database baru
+--    setelah migrasi keamanan. Skema terbaru = file berurutan di ../sql/ :
+--      010_core_platform.sql -> 011_helpers.sql -> 014_organisasi.sql -> 012_bootstrap_owner.sql
+--    Penjelasan lengkap: ../docs/migrasi/README.md
+-- ============================================================================
 -- Cara pakai:
 --   1. Buat project gratis di https://supabase.com
 --   2. Buka SQL Editor -> New query -> tempel seluruh isi file ini -> Run
