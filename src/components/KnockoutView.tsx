@@ -129,8 +129,11 @@ function KartuBagan({
   )
 }
 
+import { profilOlahraga } from '../lib/sports'
+
 export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
   const { snapshot, mulaiKnockout, simpanHasil, hapusHasil, sibuk } = useApp()
+  const aturanSkor = profilOlahraga(snapshot.clubs.find((c) => c.id === turnamen.club_id)?.sport_slug).aturan('knockout')
   const bestOf = turnamen.best_of ?? 3
   const butuhMenang = gamesToWin(bestOf)
 
@@ -275,7 +278,7 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
       setGalatSkor('Setiap game harus punya dua skor. Kosongkan baris game yang tidak dipakai.')
       return
     }
-    const cek = validateGames(games, bestOf)
+    const cek = validateGames(games, bestOf, aturanSkor)
     if (!cek.ok) {
       setGalatSkor(cek.error ?? 'Skor tidak valid.')
       return

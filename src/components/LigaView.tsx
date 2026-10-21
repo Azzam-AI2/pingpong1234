@@ -29,10 +29,14 @@ interface Skor {
 }
 
 /** Mode Liga: semua peserta saling bertemu, juara = total poin tertinggi. */
+import { profilOlahraga } from '../lib/sports'
+
 export function LigaView({ turnamen }: { turnamen: Tournament }) {
   const { snapshot, buatJadwalLiga, simpanSkorLiga, sibuk } = useApp()
+  const aturanSkor = profilOlahraga(snapshot.clubs.find((c) => c.id === turnamen.club_id)?.sport_slug).aturan('liga')
   const format = turnamen.format ?? 'single'
-  const target = turnamen.target_points ?? POIN_MAKS_LIGA
+  const target =
+    turnamen.target_points ?? (aturanSkor.jenis === 'poin' ? aturanSkor.target : POIN_MAKS_LIGA)
 
   const anggota = useMemo(
     () =>
@@ -171,7 +175,7 @@ export function LigaView({ turnamen }: { turnamen: Tournament }) {
     const a = Number(s.a)
     const b = Number(s.b)
     if (a === b) return 'Skor tidak boleh seri.'
-    const cek = validasiSkorLiga(a, b, target)
+    const cek = validasiSkorLiga(a, b, target, aturanSkor)
     return cek.ok ? null : (cek.error ?? null)
   }
 

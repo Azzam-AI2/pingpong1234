@@ -32,6 +32,7 @@ import {
   validasiSkorLiga,
 } from '../lib/liga'
 import { drawBracket, pemenangTurnamen, recompute, validateGames } from '../lib/knockout'
+import { profilOlahraga } from '../lib/sports'
 import { hitungStatistikKlub, type StatAnggota } from '../lib/stats'
 import { uid } from '../lib/utils'
 
@@ -490,7 +491,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const simpanHasil = useCallback<AppContextValue['simpanHasil']>(
     async (t, matchId, games) => {
       const bestOf = t.best_of ?? 3
-      const cek = validateGames(games, bestOf)
+      const aturan = profilOlahraga(snapshot.clubs.find((c) => c.id === t.club_id)?.sport_slug).aturan('knockout')
+      const cek = validateGames(games, bestOf, aturan)
       if (!cek.ok) {
         pesanRef.current(cek.error ?? 'Skor tidak valid.', 'error')
         return false
@@ -700,7 +702,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return false
       }
       if (skorA !== null && skorB !== null) {
-        const cek = validasiSkorLiga(skorA, skorB, t.target_points ?? POIN_MAKS_LIGA)
+        const aturan = profilOlahraga(snapshot.clubs.find((c) => c.id === t.club_id)?.sport_slug).aturan('liga')
+        const cek = validasiSkorLiga(skorA, skorB, t.target_points ?? POIN_MAKS_LIGA, aturan)
         if (!cek.ok) {
           pesanRef.current(cek.error ?? 'Skor tidak valid.', 'error')
           return false

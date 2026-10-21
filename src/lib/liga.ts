@@ -16,6 +16,8 @@ export interface LigaRoundPlan {
   resting: string[]
 }
 
+import { validasiGame, type AturanSkor } from './sports'
+
 export interface ValidasiSkorLiga {
   ok: boolean
   error?: string
@@ -28,11 +30,21 @@ export const POIN_MAKS_LIGA = 11
  * Validasi skor liga: setiap pertandingan dimainkan sampai 11 poin.
  * Pemenang harus mencapai 11 dan skor tidak boleh melebihi 11 (tanpa deuce).
  */
+/**
+ * Validasi skor liga.
+ * Tanpa `aturan`, perilaku lama dipertahankan (11 poin tanpa deuce).
+ * Dengan `aturan`, aturan mengikuti cabang olahraga klub (mis. bulu tangkis 21).
+ */
 export function validasiSkorLiga(
   skorA: number,
   skorB: number,
   targetPoin: number = POIN_MAKS_LIGA,
+  aturan?: AturanSkor,
 ): ValidasiSkorLiga {
+  if (aturan) {
+    const salah = validasiGame(aturan, skorA, skorB)
+    return salah ? { ok: false, error: salah } : { ok: true }
+  }
   const batas = Math.min(targetPoin, POIN_MAKS_LIGA)
   for (const [nama, s] of [
     ['Skor sisi pertama', skorA],

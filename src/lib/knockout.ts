@@ -35,6 +35,8 @@ export function winnerSide(games: Game[], bestOf: number): 'a' | 'b' | null {
   return null
 }
 
+import { ATURAN_TENIS_MEJA, pemenangGame, validasiGame, type AturanSkor } from './sports'
+
 export interface ValidasiGame {
   ok: boolean
   error?: string
@@ -60,7 +62,16 @@ export function labelBabakBagan(round: number, totalRounds: number): string {
   return `Babak ${sisa} Besar`
 }
 
-export function validateGames(games: Game[], bestOf: number): ValidasiGame {
+/**
+ * Validasi urutan skor game untuk format best of 3 / 5.
+ * Aturan per game mengikuti cabang olahraga klub (default: tenis meja 11 poin
+ * tanpa deuce, sehingga perilaku lama tidak berubah).
+ */
+export function validateGames(
+  games: Game[],
+  bestOf: number,
+  aturan: AturanSkor = ATURAN_TENIS_MEJA,
+): ValidasiGame {
   const need = gamesToWin(bestOf)
   if (!games.length) return { ok: false, error: 'Minimal satu game harus diisi.' }
   if (games.length > bestOf) {
@@ -69,29 +80,15 @@ export function validateGames(games: Game[], bestOf: number): ValidasiGame {
   let a = 0
   let b = 0
   for (let i = 0; i < games.length; i++) {
-    const g = games[i]
-    if (!Number.isInteger(g.a) || !Number.isInteger(g.b)) {
-      return { ok: false, error: `Skor game ${i + 1} harus bilangan bulat.` }
-    }
-    if (g.a < 0 || g.b < 0) return { ok: false, error: `Skor tidak boleh negatif (game ${i + 1}).` }
-    if (g.a > POIN_MAKS_GAME || g.b > POIN_MAKS_GAME) {
-      return {
-        ok: false,
-        error: `Skor maksimal ${POIN_MAKS_GAME} poin per game (game ${i + 1}).`,
-      }
-    }
-    if (g.a === g.b) return { ok: false, error: `Game ${i + 1} tidak boleh seri.` }
-    if (Math.max(g.a, g.b) !== POIN_MAKS_GAME) {
-      return {
-        ok: false,
-        error: `Pemenang game ${i + 1} harus mencapai ${POIN_MAKS_GAME} poin (mis. 11-9).`,
-      }
-    }
     if (a >= need || b >= need) {
       return { ok: false, error: `Pertandingan sudah selesai di game ${i}; hapus game ${i + 1}.` }
     }
-    if (g.a > g.b) a++
-    else b++
+    const g = games[i]
+    const salah = validasiGame(aturan, g.a, g.b)
+    if (salah) return { ok: false, error: `Game ${i + 1}: ${salah}` }
+    const p = pemenangGame(aturan, g.a, g.b)
+    if (p === 'a') a++
+    else if (p === 'b') b++
   }
   if (a < need && b < need) {
     return {
