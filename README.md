@@ -19,7 +19,7 @@ masuk ke sebuah klub, semua menu bekerja di dalam klub itu.
 | Layar | Isi |
 | --- | --- |
 | **Daftar klub** (`#/`) | Buat/edit/hapus klub, lihat ringkasan tiap klub (anggota, turnamen, juara terbaru), tombol **Masuk klub** |
-| **Beranda klub** (`#/klub/<id>`) | Panduan 3 langkah, jumlah anggota, turnamen berjalan/selesai, daftar turnamen yang sedang berjalan, juara terbaru, top pemain, tombol cepat |
+| **Beranda klub** (`#/klub/<id>`) | Header klub (logo, nama, tanggal dibuat) + tombol **Edit/Hapus klub**, lalu tiga kartu navigasi: **Anggota**, **Turnamen**, **Peringkat**. Panduan 3 langkah hanya muncul selama klub masih kosong |
 | **Anggota** (`#/klub/<id>/anggota`) | CRUD anggota (nama, jenis kelamin, foto) + peringatan saat menghapus anggota yang sudah dipakai turnamen |
 | **Turnamen** (`#/klub/<id>/turnamen`) | Daftar + filter status, pembuatan **Knockout / Americano / Liga**, halaman detail turnamen |
 | **Leaderboard** (`#/klub/<id>/leaderboard`) | Statistik pemain klub: jumlah pertandingan, menang/kalah, win rate, gelar, riwayat — **terpisah** Knockout dan Americano |
@@ -139,7 +139,8 @@ src/
     router.ts       router hash berjenjang (klub sebagai hierarki tertinggi)
     gambar.ts       kompres foto/logo jadi data URL kecil
   state/AppContext.tsx   state global, aksi CRUD, transaksi ke backend, toast
-  components/       Layout, Panduan (panduan/petunjuk), KnockoutView, AmericanoView, komponen UI
+  components/       Layout, Panduan (panduan/petunjuk), KlubForm (modal klub bersama),
+                    KnockoutView, AmericanoView, LigaView, komponen UI
   pages/            PilihKlub, Dashboard (beranda klub), Anggota, Turnamen, TurnamenDetail,
                     Leaderboard, Supabase
 supabase/schema.sql     skema + RLS untuk Supabase

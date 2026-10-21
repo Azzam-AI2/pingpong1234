@@ -13,7 +13,7 @@ interface ItemMenu {
 const MENU: ItemMenu[] = [
   {
     halaman: 'beranda',
-    label: 'Beranda',
+    label: 'Klub',
     jalur: 'M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6V11h-6v9Zm0-16v5h6V4h-6Z',
   },
   {
@@ -29,10 +29,21 @@ const MENU: ItemMenu[] = [
   },
   {
     halaman: 'leaderboard',
-    label: 'Leaderboard',
+    label: 'Peringkat',
     jalur: 'M4 20h4v-8H4v8Zm6 0h4V4h-4v16Zm6 0h4v-11h-4v11Z',
   },
 ]
+
+/** Label bagian yang tampil di bilah atas, mengikuti gaya aplikasi rujukan. */
+const BAGIAN: Record<NamaHalaman, string> = {
+  'pilih-klub': 'Klub',
+  beranda: 'Klub',
+  anggota: 'Anggota',
+  turnamen: 'Turnamen',
+  detail: 'Turnamen',
+  leaderboard: 'Peringkat',
+  penyimpanan: 'Penyimpanan',
+}
 
 function aktifUntuk(halaman: NamaHalaman, ini: NamaHalaman): boolean {
   if (halaman === ini) return true
@@ -49,86 +60,31 @@ export function Layout({
   klubId?: string
   children: ReactNode
 }) {
-  const { info, klubAktif, snapshot, galatMuat, memuat } = useApp()
+  const { info, klubAktif, galatMuat } = useApp()
   const didalamKlub = Boolean(klubId)
-  const jumlahAnggota = klubAktif
-    ? snapshot.members.filter((m) => m.club_id === klubAktif.id).length
-    : 0
+  const tampilkanRemah = didalamKlub && Boolean(klubId) && Boolean(klubAktif) && halaman !== 'beranda'
 
   return (
     <div className="min-h-full pb-24 sm:pb-8">
-      <header className="sticky top-0 z-30 border-b border-ink/10 bg-surface/85 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-3">
-          <div className="flex items-center justify-between gap-3">
-            {didalamKlub && klubAktif ? (
-              <div className="flex min-w-0 items-center gap-2.5">
-                {klubAktif.logo_url ? (
-                  <img src={klubAktif.logo_url} alt="" className="h-9 w-9 rounded-xl object-cover" />
-                ) : (
-                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600/30 text-lg">
-                    🏓
-                  </span>
-                )}
-                <span className="min-w-0">
-                  <span className="block truncate text-sm font-semibold leading-tight text-ink">
-                    {klubAktif.name}
-                  </span>
-                  <span className="block text-[11px] leading-tight text-ink-muted">
-                    {memuat ? 'Menyinkronkan data…' : `${jumlahAnggota} anggota`}
-                  </span>
-                </span>
-              </div>
-            ) : (
-              <a href={keHash({ halaman: 'pilih-klub' })} className="flex items-center gap-2.5">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 text-lg">
-                  🏓
-                </span>
-                <span>
-                  <span className="block text-sm font-semibold leading-tight text-ink">
-                    Pingpong Club Manager
-                  </span>
-                  <span className="block text-[11px] leading-tight text-ink-muted">
-                    {memuat ? 'Menyinkronkan data…' : 'Pilih klub untuk mulai'}
-                  </span>
-                </span>
-              </a>
-            )}
-
-            <div className="flex shrink-0 items-center gap-2">
-              {didalamKlub && (
-                <a
-                  href={keHash({ halaman: 'pilih-klub' })}
-                  className="rounded-xl border border-ink/12 bg-ink/6 px-3 py-1.5 text-xs text-ink-soft hover:bg-ink/10"
-                >
-                  ⇄ Ganti klub
-                </a>
-              )}
-              <a href={keHash({ halaman: 'penyimpanan' })}>
-                <Lencana warna={info.mode === 'supabase' ? 'hijau' : 'kuning'}>
-                  {info.mode === 'supabase' ? '● Online' : '● Lokal'}
-                </Lencana>
-              </a>
-            </div>
+      <header className="sticky top-0 z-30 border-b border-ink/10 bg-surface/90 backdrop-blur">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-lg">
+              🏓
+            </span>
+            <span className="truncate text-base font-bold tracking-tight text-ink">
+              Pingpong Club Manager
+            </span>
+            <span className="ml-2 hidden shrink-0 text-sm text-ink-muted sm:block">
+              {BAGIAN[halaman]}
+            </span>
           </div>
 
-          {didalamKlub && klubId && (
-            <nav className="hidden gap-1 sm:flex">
-              {MENU.map((m) => (
-                <a
-                  key={m.halaman}
-                  href={keHash({ halaman: m.halaman, klubId })}
-                  className={cls(
-                    'rounded-xl px-3 py-2 text-sm font-medium transition-colors',
-                    aktifUntuk(halaman, m.halaman)
-                      ? 'bg-brand-600 text-white'
-                      : 'text-ink-soft hover:bg-ink/10',
-                  )}
-                >
-                  {m.label}
-                </a>
-              ))}
-            </nav>
-          )}
+          <a href={keHash({ halaman: 'penyimpanan' })} className="shrink-0">
+            <Lencana warna={info.mode === 'supabase' ? 'hijau' : 'kuning'}>
+              {info.mode === 'supabase' ? '● Online' : '● Lokal'}
+            </Lencana>
+          </a>
         </div>
       </header>
 
@@ -165,6 +121,30 @@ export function Layout({
               </>
             )}
           </div>
+        </div>
+      )}
+
+      {tampilkanRemah && klubId && klubAktif && (
+        <div className="mx-auto max-w-5xl px-4 pt-4">
+          <a
+            href={keHash({ halaman: 'beranda', klubId })}
+            className="inline-flex items-center gap-2 text-sm text-ink-muted transition-colors hover:text-ink"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              className="h-4 w-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.8}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
+              <path d="M19 12H5" />
+              <path d="M12 19l-7-7 7-7" />
+            </svg>
+            {klubAktif.name}
+          </a>
         </div>
       )}
 

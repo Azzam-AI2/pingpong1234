@@ -1,162 +1,232 @@
-import { useMemo } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { useApp } from '../state/AppContext'
-import { Avatar, Kartu, Lencana, Tombol } from '../components/ui'
+import { Konfirmasi } from '../components/ui'
+import { ModalKlub, type DataKlubForm } from '../components/KlubForm'
 import { MulaiDariSini } from '../components/Panduan'
-import { keHash } from '../lib/router'
-import { formatTanggal } from '../lib/utils'
-import { ringkasDashboard } from '../lib/stats'
+import { keHash, type Target } from '../lib/router'
+import { formatTanggalPanjang } from '../lib/utils'
 
-function Stat({ label, nilai, warna }: { label: string; nilai: string | number; warna?: string }) {
+const IKON: Record<string, ReactNode> = {
+  anggota: (
+    <>
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </>
+  ),
+  turnamen: (
+    <>
+      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+      <path d="M4 22h16" />
+      <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+      <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+      <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+    </>
+  ),
+  peringkat: (
+    <>
+      <rect x="3" y="12" width="4.5" height="9" rx="1.2" />
+      <rect x="9.75" y="3" width="4.5" height="18" rx="1.2" />
+      <rect x="16.5" y="8" width="4.5" height="13" rx="1.2" />
+    </>
+  ),
+  pensil: (
+    <>
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </>
+  ),
+  sampah: (
+    <>
+      <path d="M3 6h18" />
+      <path d="M8 6V4h8v2" />
+      <path d="M19 6l-1 14H6L5 6" />
+      <path d="M10 11v6M14 11v6" />
+    </>
+  ),
+  panahKiri: (
+    <>
+      <path d="M19 12H5" />
+      <path d="M12 19l-7-7 7-7" />
+    </>
+  ),
+}
+
+function Ikon({ jalur, kelas = 'h-6 w-6' }: { jalur: ReactNode; kelas?: string }) {
   return (
-    <Kartu className="flex flex-col gap-1">
-      <span className="text-xs text-ink-muted">{label}</span>
-      <span className={`text-2xl font-semibold ${warna ?? 'text-ink'}`}>{nilai}</span>
-    </Kartu>
+    <svg
+      viewBox="0 0 24 24"
+      className={kelas}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      {jalur}
+    </svg>
   )
 }
 
-/** Beranda klub: ringkasan dan pintasan kerja harian. */
-export function Dashboard() {
-  const { snapshot, klubAktif } = useApp()
+/** Satu kartu navigasi besar: ikon lalu judul lalu keterangan bertanda panah. */
+function KartuMenu({
+  href,
+  ikon,
+  judul,
+  keterangan,
+}: {
+  href: string
+  ikon: ReactNode
+  judul: string
+  keterangan: string
+}) {
+  return (
+    <a
+      href={href}
+      className="group flex flex-col rounded-2xl border border-ink/12 bg-surface p-5 transition-colors hover:border-brand-600/40 hover:bg-brand-500/[0.04] sm:p-7"
+    >
+      <span className="text-brand-700">
+        <Ikon jalur={ikon} />
+      </span>
+      <span className="mt-5 text-lg font-bold tracking-tight text-ink sm:mt-6 sm:text-xl">
+        {judul}
+      </span>
+      <span className="mt-1.5 text-sm text-ink-muted sm:text-[15px]">{keterangan}</span>
+    </a>
+  )
+}
+
+/**
+ * Halaman klub: header klub (logo, nama, tanggal dibuat, tombol Edit/Hapus),
+ * lalu tiga kartu navigasi besar - Anggota, Turnamen, Peringkat.
+ */
+export function Dashboard({ pindah }: { pindah?: (t: Target) => void }) {
+  const { snapshot, klubAktif, hapusKlub } = useApp()
   const klubId = klubAktif?.id
+  const [form, setForm] = useState<DataKlubForm | null>(null)
+  const [konfirmasiHapus, setKonfirmasiHapus] = useState(false)
 
-  const data = useMemo(() => {
-    if (!klubAktif) return ringkasDashboard([], [], [], [], [], [])
-    const anggota = snapshot.members.filter((m) => m.club_id === klubAktif.id)
-    const turnamen = snapshot.tournaments.filter((t) => t.club_id === klubAktif.id)
-    const idsTurnamen = new Set(turnamen.map((t) => t.id))
-    return ringkasDashboard(
-      [klubAktif],
-      anggota,
-      turnamen,
-      snapshot.participants.filter((p) => idsTurnamen.has(p.tournament_id)),
-      snapshot.knockout_matches.filter((m) => idsTurnamen.has(m.tournament_id)),
-      snapshot.americano_matches.filter((m) => idsTurnamen.has(m.tournament_id)),
-    )
+  const hitung = useMemo(() => {
+    if (!klubAktif) return { anggota: 0, turnamen: 0 }
+    return {
+      anggota: snapshot.members.filter((m) => m.club_id === klubAktif.id).length,
+      turnamen: snapshot.tournaments.filter((t) => t.club_id === klubAktif.id).length,
+    }
   }, [snapshot, klubAktif])
 
-  const berjalan = useMemo(() => {
-    if (!klubAktif) return []
-    return snapshot.tournaments
-      .filter((t) => t.club_id === klubAktif.id && t.status !== 'finished')
-      .slice()
-      .sort((a, b) => (a.date < b.date ? 1 : -1))
-      .slice(0, 3)
-      .map((t) => {
-        if (t.type === 'knockout') {
-          const main = snapshot.knockout_matches.filter(
-            (m) => m.tournament_id === t.id && m.participant_a && m.participant_b,
-          )
-          return { t, total: main.length, terisi: main.filter((m) => m.games.length > 0).length }
-        }
-        const ms = snapshot.americano_matches.filter((m) => m.tournament_id === t.id)
-        return {
-          t,
-          total: ms.length,
-          terisi: ms.filter((m) => m.score_a !== null && m.score_b !== null).length,
-        }
-      })
-  }, [snapshot, klubAktif])
-
-  if (!klubAktif) return null
+  if (!klubAktif || !klubId) return null
+  const klubBaru = hitung.anggota === 0 && hitung.turnamen === 0
 
   return (
-    <div className="space-y-5">
-      <MulaiDariSini
-        klubId={klubId}
-        jumlahKlub={snapshot.clubs.length}
-        jumlahAnggota={data.jumlahAnggota}
-        jumlahTurnamen={data.turnamenAktif + data.turnamenSelesai}
-      />
+    <div className="space-y-7 sm:space-y-9">
+      <a
+        href={keHash({ halaman: 'pilih-klub' })}
+        className="inline-flex items-center gap-2 text-sm text-ink-muted transition-colors hover:text-ink"
+      >
+        <Ikon jalur={IKON.panahKiri} kelas="h-4 w-4" />
+        Semua klub
+      </a>
 
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <Stat label="Anggota" nilai={data.jumlahAnggota} />
-        <Stat label="Turnamen berjalan" nilai={data.turnamenAktif} warna="text-brand-800" />
-        <Stat label="Turnamen selesai" nilai={data.turnamenSelesai} warna="text-emerald-800" />
+      <section className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-7">
+        {klubAktif.logo_url ? (
+          <img
+            src={klubAktif.logo_url}
+            alt=""
+            className="h-20 w-20 shrink-0 rounded-2xl border border-ink/12 bg-surface object-cover sm:h-28 sm:w-28"
+          />
+        ) : (
+          <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-ink/12 bg-surface text-4xl sm:h-28 sm:w-28 sm:text-5xl">
+            🏓
+          </span>
+        )}
+
+        <div className="min-w-0 flex-1">
+          <h1 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
+            {klubAktif.name}
+          </h1>
+          <p className="mt-1.5 text-sm text-ink-muted sm:text-base">
+            Dibuat {formatTanggalPanjang(klubAktif.created_at)}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 sm:ml-auto sm:gap-6">
+          <button
+            type="button"
+            onClick={() =>
+              setForm({ id: klubAktif.id, name: klubAktif.name, logo_url: klubAktif.logo_url })
+            }
+            className="inline-flex items-center gap-2 rounded-[10px] bg-surface-2 px-5 py-3 text-[15px] font-medium text-brand-700 transition-colors hover:bg-brand-500/20"
+          >
+            <Ikon jalur={IKON.pensil} kelas="h-4 w-4" />
+            Edit
+          </button>
+          <button
+            type="button"
+            onClick={() => setKonfirmasiHapus(true)}
+            className="inline-flex items-center gap-2 px-2 py-3 text-[15px] font-medium text-rose-700 transition-colors hover:text-rose-700/80"
+          >
+            <Ikon jalur={IKON.sampah} kelas="h-4 w-4" />
+            Hapus
+          </button>
+        </div>
       </section>
 
-      <section className="flex flex-wrap gap-2">
-        <a href={keHash({ halaman: 'turnamen', klubId, aksi: 'baru-turnamen' })}>
-          <Tombol>+ Turnamen baru</Tombol>
-        </a>
-        <a href={keHash({ halaman: 'anggota', klubId, aksi: 'baru-anggota' })}>
-          <Tombol variasi="sekunder">+ Anggota</Tombol>
-        </a>
-        <a href={keHash({ halaman: 'leaderboard', klubId })}>
-          <Tombol variasi="sekunder">Leaderboard</Tombol>
-        </a>
+      <section className="grid gap-4 sm:grid-cols-3 sm:gap-6">
+        <KartuMenu
+          href={keHash({ halaman: 'anggota', klubId })}
+          ikon={IKON.anggota}
+          judul="Anggota"
+          keterangan="Kelola direktori pemain →"
+        />
+        <KartuMenu
+          href={keHash({ halaman: 'turnamen', klubId })}
+          ikon={IKON.turnamen}
+          judul="Turnamen"
+          keterangan="Knockout, liga & bagan →"
+        />
+        <KartuMenu
+          href={keHash({ halaman: 'leaderboard', klubId })}
+          ikon={IKON.peringkat}
+          judul="Peringkat"
+          keterangan="Leaderboard & statistik pemain →"
+        />
       </section>
 
-      {berjalan.length > 0 && (
-        <Kartu className="space-y-2">
-          <h2 className="text-sm font-semibold text-ink-soft">Sedang berjalan</h2>
-          <ul className="space-y-2">
-            {berjalan.map(({ t, total, terisi }) => (
-              <li key={t.id}>
-                <a
-                  href={keHash({ halaman: 'detail', klubId, id: t.id })}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-ink/12 bg-ink/[0.04] p-3 hover:bg-ink/10"
-                >
-                  <span className="min-w-0">
-                    <span className="block truncate text-sm font-medium text-ink">{t.name}</span>
-                    <span className="block text-xs text-ink-muted">
-                      {t.type === 'knockout' ? 'Knockout' : 'Americano'} · skor {terisi} dari {total}
-                    </span>
-                  </span>
-                  <span className="shrink-0 text-xs text-brand-800">
-                    {total === 0 ? 'atur peserta →' : terisi === total ? 'tandai selesai →' : 'isi skor →'}
-                  </span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </Kartu>
+      {klubBaru && (
+        <MulaiDariSini
+          klubId={klubId}
+          jumlahKlub={snapshot.clubs.length}
+          jumlahAnggota={hitung.anggota}
+          jumlahTurnamen={hitung.turnamen}
+        />
       )}
 
-      <section className="grid gap-3 sm:grid-cols-2">
-        <Kartu>
-          <h2 className="mb-2 text-sm font-semibold text-ink-soft">Juara terbaru</h2>
-          {data.juaraTerbaru ? (
-            <div className="animate-pop-in">
-              <p className="text-lg font-semibold text-accent-900">🏆 {data.juaraTerbaru.nama}</p>
-              <p className="mt-1 text-sm text-ink-soft">{data.juaraTerbaru.turnamen}</p>
-              <p className="text-xs text-ink-muted">
-                {data.juaraTerbaru.jenis} · {formatTanggal(data.juaraTerbaru.tanggal)}
-              </p>
-            </div>
-          ) : (
-            <p className="text-sm text-ink-muted">
-              Belum ada juara. Selesaikan turnamen knockout atau lengkapi skor Americano.
-            </p>
-          )}
-        </Kartu>
+      <ModalKlub data={form} onTutup={() => setForm(null)} />
 
-        <Kartu>
-          <h2 className="mb-2 text-sm font-semibold text-ink-soft">Top pemain</h2>
-          {data.topPemain.length ? (
-            <ul className="space-y-2">
-              {data.topPemain.map((p, i) => (
-                <li key={p.nama} className="flex items-center gap-3">
-                  <Avatar nama={p.nama} ukuran={34} />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-ink">{p.nama}</p>
-                    <p className="text-xs text-ink-muted">
-                      {p.matches} pertandingan · win rate {p.winrate}%
-                    </p>
-                  </div>
-                  {p.gelar > 0 ? (
-                    <Lencana warna="kuning">🏅 {p.gelar} gelar</Lencana>
-                  ) : (
-                    <span className="text-xs text-ink-faint">#{i + 1}</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-ink-muted">Belum ada pertandingan yang dimainkan di klub ini.</p>
-          )}
-        </Kartu>
-      </section>
+      <Konfirmasi
+        terbuka={konfirmasiHapus}
+        judul="Hapus klub?"
+        pesan={
+          <>
+            Klub <b>{klubAktif.name}</b> akan dihapus bersama <b>{hitung.anggota} anggota</b> dan{' '}
+            <b>{hitung.turnamen} turnamen</b> beserta seluruh hasil pertandingannya. Tindakan ini
+            tidak bisa dibatalkan.
+          </>
+        }
+        teksYa="Hapus klub & datanya"
+        onBatal={() => setKonfirmasiHapus(false)}
+        onYa={async () => {
+          setKonfirmasiHapus(false)
+          const ok = await hapusKlub(klubAktif.id)
+          if (ok) {
+            if (pindah) pindah({ halaman: 'pilih-klub' })
+            else window.location.hash = keHash({ halaman: 'pilih-klub' })
+          }
+        }}
+      />
     </div>
   )
 }

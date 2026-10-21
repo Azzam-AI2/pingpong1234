@@ -54,7 +54,7 @@ function Isi() {
     <Layout halaman={rute.halaman} klubId={rute.klubId}>
       {rute.halaman === 'pilih-klub' && <PilihKlub aksi={rute.aksi} pindah={pindah} />}
       {rute.halaman === 'penyimpanan' && <Supabase />}
-      {rute.halaman === 'beranda' && <Dashboard />}
+      {rute.halaman === 'beranda' && <Dashboard pindah={pindah} />}
       {rute.halaman === 'anggota' && <Anggota aksi={rute.aksi} />}
       {rute.halaman === 'turnamen' && <Turnamen pindah={pindah} aksi={rute.aksi} />}
       {rute.halaman === 'detail' &&

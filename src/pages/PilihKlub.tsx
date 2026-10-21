@@ -1,66 +1,27 @@
 import { useEffect, useState } from 'react'
 import { useApp } from '../state/AppContext'
-import {
-  Input,
-  InputGambar,
-  Kartu,
-  Kolom,
-  Konfirmasi,
-  Kosong,
-  Lencana,
-  Modal,
-  Tombol,
-} from '../components/ui'
+import { Kartu, Konfirmasi, Kosong, Lencana, Tombol } from '../components/ui'
+import { ModalKlub, type DataKlubForm } from '../components/KlubForm'
 import { Petunjuk } from '../components/Panduan'
 import { bersihkanAksi, keHash, type Target } from '../lib/router'
-import { formatTanggal, validasiNama } from '../lib/utils'
+import { formatTanggal } from '../lib/utils'
 import { pemenangTurnamen } from '../lib/knockout'
-
-interface FormKlub {
-  id?: string
-  name: string
-  logo_url: string | null
-}
 
 /**
  * Halaman awal aplikasi: daftar klub sebagai hierarki tertinggi.
  * Semua data (anggota, turnamen, leaderboard) berada di dalam klub.
  */
 export default function PilihKlub({ aksi, pindah }: { aksi?: string; pindah: (t: Target) => void }) {
-  const { snapshot, simpanKlub, hapusKlub, klubTerakhir, sibuk } = useApp()
-  const [form, setForm] = useState<FormKlub | null>(null)
-  const [galat, setGalat] = useState<string | null>(null)
+  const { snapshot, hapusKlub, klubTerakhir } = useApp()
+  const [form, setForm] = useState<DataKlubForm | null>(null)
   const [konfirmasi, setKonfirmasi] = useState<string | null>(null)
 
   useEffect(() => {
     if (aksi === 'baru-klub') {
-      setGalat(null)
       setForm({ name: '', logo_url: null })
       bersihkanAksi()
     }
   }, [aksi])
-
-  const kirim = async () => {
-    if (!form) return
-    const salah = validasiNama(form.name)
-    if (salah) {
-      setGalat(salah)
-      return
-    }
-    const namaSama = snapshot.clubs.some(
-      (c) => c.id !== form.id && c.name.trim().toLowerCase() === form.name.trim().toLowerCase(),
-    )
-    if (namaSama) {
-      setGalat('Sudah ada klub dengan nama itu. Pakai nama lain agar tidak tertukar.')
-      return
-    }
-    setGalat(null)
-    const idKlub = await simpanKlub(form)
-    if (idKlub) {
-      setForm(null)
-      pindah({ halaman: 'beranda', klubId: idKlub })
-    }
-  }
 
   const jumlahAnggota = (clubId: string) => snapshot.members.filter((m) => m.club_id === clubId).length
   const turnamenKlub = (clubId: string) => snapshot.tournaments.filter((t) => t.club_id === clubId)
@@ -75,10 +36,7 @@ export default function PilihKlub({ aksi, pindah }: { aksi?: string; pindah: (t:
           </p>
         </div>
         <Tombol
-          onClick={() => {
-            setGalat(null)
-            setForm({ name: '', logo_url: null })
-          }}
+          onClick={() => setForm({ name: '', logo_url: null })}
         >
           + Klub baru
         </Tombol>
@@ -153,10 +111,7 @@ export default function PilihKlub({ aksi, pindah }: { aksi?: string; pindah: (t:
                   <Tombol
                     kecil
                     variasi="sekunder"
-                    onClick={() => {
-                      setGalat(null)
-                      setForm({ id: c.id, name: c.name, logo_url: c.logo_url })
-                    }}
+                    onClick={() => setForm({ id: c.id, name: c.name, logo_url: c.logo_url })}
                   >
                     Edit
                   </Tombol>
@@ -178,36 +133,13 @@ export default function PilihKlub({ aksi, pindah }: { aksi?: string; pindah: (t:
         </p>
       </Petunjuk>
 
-      <Modal
-        judul={form?.id ? 'Edit klub' : 'Klub baru'}
-        terbuka={form !== null}
+      <ModalKlub
+        data={form}
         onTutup={() => setForm(null)}
-        aksi={
-          <>
-            <Tombol variasi="sekunder" onClick={() => setForm(null)}>
-              Batal
-            </Tombol>
-            <Tombol onClick={kirim} disabled={sibuk}>
-              Simpan
-            </Tombol>
-          </>
-        }
-      >
-        <Kolom label="Nama klub" wajib>
-          <Input
-            value={form?.name ?? ''}
-            onChange={(e) => form && setForm({ ...form, name: e.target.value })}
-            placeholder="Contoh: Pingpong Club FinOps"
-            maxLength={60}
-          />
-        </Kolom>
-        <InputGambar
-          label="Logo klub"
-          nilai={form?.logo_url ?? null}
-          onUbah={(v) => form && setForm({ ...form, logo_url: v })}
-        />
-        {galat && <p className="text-sm text-rose-700">{galat}</p>}
-      </Modal>
+        onSimpan={(idKlub, baruDibuat) => {
+          if (baruDibuat && idKlub) pindah({ halaman: 'beranda', klubId: idKlub })
+        }}
+      />
 
       <Konfirmasi
         terbuka={konfirmasi !== null}

@@ -24,7 +24,21 @@ export function shuffle<T>(arr: T[], rand: () => number = Math.random): T[] {
   return out
 }
 
-const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+const BULAN_PANJANG = [
+  'Januari',
+  'Februari',
+  'Maret',
+  'April',
+  'Mei',
+  'Juni',
+  'Juli',
+  'Agustus',
+  'September',
+  'Oktober',
+  'November',
+  'Desember',
+]
 
 /** '2026-10-20' -> '20 Okt 2026' */
 export function formatTanggal(iso: string | null | undefined): string {
@@ -32,6 +46,14 @@ export function formatTanggal(iso: string | null | undefined): string {
   const [y, m, d] = iso.slice(0, 10).split('-').map(Number)
   if (!y || !m || !d) return iso
   return `${d} ${BULAN[m - 1]} ${y}`
+}
+
+/** '2026-10-20' -> '20 Oktober 2026' (nama bulan penuh, untuk header klub). */
+export function formatTanggalPanjang(iso: string | null | undefined): string {
+  if (!iso) return '-'
+  const [y, m, d] = iso.slice(0, 10).split('-').map(Number)
+  if (!y || !m || !d) return iso
+  return `${d} ${BULAN_PANJANG[m - 1]} ${y}`
 }
 
 export function todayISO(): string {
