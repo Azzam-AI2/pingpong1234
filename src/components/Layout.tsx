@@ -60,15 +60,14 @@ export function Layout({
   klubId?: string
   children: ReactNode
 }) {
-  const { info, klubAktif, galatMuat } = useApp()
+  const { info, galatMuat } = useApp()
   const didalamKlub = Boolean(klubId)
-  const tampilkanRemah = didalamKlub && Boolean(klubId) && Boolean(klubAktif) && halaman !== 'beranda'
 
   return (
     <div className="min-h-full pb-24 sm:pb-8">
       <header className="sticky top-0 z-30 border-b border-ink/10 bg-surface/90 backdrop-blur">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
-          <div className="flex min-w-0 items-center gap-2.5">
+          <a href={keHash({ halaman: 'pilih-klub' })} className="flex min-w-0 items-center gap-2.5">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-lg">
               🏓
             </span>
@@ -78,7 +77,7 @@ export function Layout({
             <span className="ml-2 hidden shrink-0 text-sm text-ink-muted sm:block">
               {BAGIAN[halaman]}
             </span>
-          </div>
+          </a>
 
           <a href={keHash({ halaman: 'penyimpanan' })} className="shrink-0">
             <Lencana warna={info.mode === 'supabase' ? 'hijau' : 'kuning'}>
@@ -140,30 +139,6 @@ export function Layout({
               </>
             )}
           </div>
-        </div>
-      )}
-
-      {tampilkanRemah && klubId && klubAktif && (
-        <div className="mx-auto max-w-5xl px-4 pt-4">
-          <a
-            href={keHash({ halaman: 'beranda', klubId })}
-            className="inline-flex items-center gap-2 text-sm text-ink-muted transition-colors hover:text-ink"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.8}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden
-            >
-              <path d="M19 12H5" />
-              <path d="M12 19l-7-7 7-7" />
-            </svg>
-            {klubAktif.name}
-          </a>
         </div>
       )}
 
