@@ -15,7 +15,7 @@ import {
 import type { Game, KnockoutMatch, Tournament } from '../lib/types'
 import {
   gamesToWin,
-  labelBabak,
+  labelBabakBagan,
   pemenangTurnamen,
   validateGames,
 } from '../lib/knockout'
@@ -24,6 +24,109 @@ import { cls } from '../lib/utils'
 interface SkorForm {
   a: string
   b: string
+}
+
+/**
+ * Satu kartu pertandingan pada bagan: dua baris nama + skor game, dipisah garis,
+ * dengan bilah "Input skor" kalau pertandingannya siap diisi. Skor per game
+ * ditampilkan di bawah kartu (di luar bingkai), seperti gaya bagan tenis meja.
+ */
+function KartuBagan({
+  m,
+  namaPeserta,
+  onIsi,
+}: {
+  m: KnockoutMatch
+  namaPeserta: (id: string | null) => string | null
+  onIsi: () => void
+}) {
+  const punyaHasil = m.games.length > 0
+  const bye = m.round === 1 && Boolean(m.participant_a) !== Boolean(m.participant_b)
+  const bisaDiisi = Boolean(m.participant_a && m.participant_b)
+  const gameA = m.games.filter((g) => g.a > g.b).length
+  const gameB = m.games.filter((g) => g.b > g.a).length
+
+  const sisi = [
+    { kunci: 'a', pid: m.participant_a, menang: m.winner_id === m.participant_a, game: gameA },
+    { kunci: 'b', pid: m.participant_b, menang: m.winner_id === m.participant_b, game: gameB },
+  ]
+
+  const isi = (
+    <>
+      <div
+        className={cls(
+          'overflow-hidden rounded-xl border bg-surface',
+          bisaDiisi && !punyaHasil ? 'border-brand-500/40' : 'border-ink/12',
+        )}
+      >
+        {sisi.map((s, i) => {
+          const nama = namaPeserta(s.pid)
+          return (
+            <div
+              key={s.kunci}
+              className={cls(
+                'flex items-center justify-between gap-3 px-4 py-3',
+                i === 0 && 'border-b border-ink/10',
+              )}
+            >
+              {nama ? (
+                <span
+                  className={cls(
+                    'truncate text-[15px]',
+                    punyaHasil
+                      ? s.menang
+                        ? 'font-bold text-ink'
+                        : 'text-ink-faint line-through'
+                      : 'text-ink',
+                  )}
+                >
+                  {nama}
+                </span>
+              ) : bye ? (
+                <span className="truncate text-[15px] italic text-ink-faint">BYE</span>
+              ) : (
+                <span className="text-[15px] text-ink-faint">—</span>
+              )}
+              {punyaHasil && (
+                <span
+                  className={cls(
+                    'shrink-0 text-[15px] font-bold',
+                    s.menang ? 'text-ink' : 'text-ink-faint',
+                  )}
+                >
+                  {s.game}
+                </span>
+              )}
+            </div>
+          )
+        })}
+
+        {bisaDiisi && !punyaHasil && (
+          <div className="border-t border-ink/10 bg-brand-500/10 px-4 py-2.5 text-[13px] font-medium text-brand-800">
+            Input skor
+          </div>
+        )}
+      </div>
+
+      {punyaHasil && (
+        <p className="mt-1.5 px-1 text-[13px] text-ink-muted">
+          {m.games.map((g) => `${g.a}–${g.b}`).join(', ')}
+        </p>
+      )}
+    </>
+  )
+
+  if (!bisaDiisi) return <div className="w-full">{isi}</div>
+  return (
+    <button
+      type="button"
+      onClick={onIsi}
+      title={punyaHasil ? 'Ubah skor pertandingan' : 'Isi skor pertandingan'}
+      className="w-full text-left"
+    >
+      {isi}
+    </button>
+  )
 }
 
 export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
@@ -55,6 +158,7 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
   )
 
   const babak = useMemo(() => [...new Set(matches.map((m) => m.round))].sort((a, b) => a - b), [matches])
+  const totalRonde = babak.length ? babak[babak.length - 1] : 0
   const juara = pemenangTurnamen(matches, bestOf)
 
   const namaPeserta = (id: string | null) =>
@@ -134,10 +238,12 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
     setMatchAktif(m.id)
   }
 
-  const ubahSkor = (idx: number, sisi: 'a' | 'b', nilai: string) =>
+  const ubahSkor = (idx: number, sisi: 'a' | 'b', nilai: string) => {
+    setGalatSkor(null)
     setSkor((prev) =>
       prev.map((g, i) => (i === idx ? { ...g, [sisi]: nilai.replace(/[^0-9]/g, '').slice(0, 2) } : g)),
     )
+  }
 
   const skorKeGames = (): Game[] | null => {
     const games: Game[] = []
@@ -269,68 +375,31 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
             </Tombol>
           </div>
 
-          <div className="-mx-4 overflow-x-auto px-4 pb-2">
-            <div className="flex min-w-max gap-3">
+          <div className="-mx-4 overflow-x-auto px-4 pb-1">
+            <div className="flex min-w-max items-stretch gap-5 sm:gap-7">
               {babak.map((r) => (
-                <div key={r} className="w-[15rem] shrink-0 space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
-                    {labelBabak(matches, r)}
-                  </p>
-                  {matches
-                    .filter((m) => m.round === r)
-                    .map((m) => {
-                      const menang = m.winner_id ? namaPeserta(m.winner_id) : null
-                      const bye = m.round === 1 && !m.participant_a !== !m.participant_b
-                      const bisaDiisi = Boolean(m.participant_a && m.participant_b)
-                      return (
-                        <button
-                          key={m.id}
-                          type="button"
-                          onClick={() => bisaDiisi && bukaSkor(m)}
-                          className={cls(
-                            'w-full rounded-xl border p-2.5 text-left transition-colors',
-                            bisaDiisi
-                              ? 'border-ink/12 bg-ink/6 hover:border-brand-600/40 hover:bg-ink/10'
-                              : 'border-dashed border-ink/12 bg-ink/[0.03]',
-                          )}
-                        >
-                          {[['a', m.participant_a], ['b', m.participant_b]].map(([sisi, pid]) => {
-                            const nama = namaPeserta(pid as string | null)
-                            const adalahPemenang = Boolean(pid) && pid === m.winner_id
-                            return (
-                              <div
-                                key={sisi as string}
-                                className={cls(
-                                  'flex items-center justify-between gap-2 text-sm',
-                                  adalahPemenang ? 'font-semibold text-emerald-800' : 'text-ink-soft',
-                                )}
-                              >
-                                <span className="truncate">{nama ?? '—'}</span>
-                                {adalahPemenang && <span>✓</span>}
-                              </div>
-                            )
-                          })}
-                          <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px]">
-                            {m.games.length ? (
-                              <span className="text-ink-soft">
-                                {m.games.map((g) => `${g.a}-${g.b}`).join(' · ')}
-                              </span>
-                            ) : bye ? (
-                              <span className="text-accent-900">bye — lolos otomatis</span>
-                            ) : bisaDiisi ? (
-                              <span className="text-ink-muted">Belum ada skor — ketuk untuk isi</span>
-                            ) : (
-                              <span className="text-ink-faint">Menunggu pemenang babak sebelumnya</span>
-                            )}
-                            {menang && m.games.length > 0 && <span className="text-emerald-800">menang</span>}
-                          </div>
-                        </button>
-                      )
-                    })}
-                </div>
+                <section key={r} className="flex w-[15rem] shrink-0 flex-col sm:w-[17rem]">
+                  <h3 className="mb-3 text-[13px] font-bold uppercase tracking-wide text-brand-800">
+                    {labelBabakBagan(r, totalRonde)}
+                  </h3>
+                  <div className="flex flex-1 flex-col gap-4">
+                    {matches
+                      .filter((m) => m.round === r)
+                      .map((m) => (
+                        <div key={m.id} className="flex flex-1 items-center">
+                          <KartuBagan m={m} namaPeserta={namaPeserta} onIsi={() => bukaSkor(m)} />
+                        </div>
+                      ))}
+                  </div>
+                </section>
               ))}
             </div>
           </div>
+
+          <p className="text-xs text-ink-muted">
+            Bagan tersimpan permanen. Pemain dengan BYE lolos otomatis tanpa dihitung sebagai
+            kemenangan. Ketuk kartu pertandingan untuk mengisi atau mengubah skor.
+          </p>
 
           <div className="flex flex-wrap gap-2">
             <Tombol
@@ -353,7 +422,7 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
 
       {/* --------------------------------------------------- modal skor */}
       <Modal
-        judul={matchObj ? `Skor · ${labelBabak(matches, matchObj.round)}` : 'Skor'}
+        judul={matchObj ? `Skor · ${labelBabakBagan(matchObj.round, totalRonde)}` : 'Skor'}
         terbuka={matchObj !== null}
         onTutup={() => setMatchAktif(null)}
         aksi={

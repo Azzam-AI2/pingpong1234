@@ -48,6 +48,18 @@ export const POIN_MAKS_GAME = 11
  * Setiap game dimainkan sampai 11 poin: pemenang game harus mencapai 11
  * dan tidak ada skor yang melebihi 11 (tanpa deuce).
  */
+/**
+ * Nama babak untuk judul kolom bagan, mengikuti gaya turnamen tenis meja:
+ * FINAL, SEMIFINAL, PEREMPAT FINAL, lalu BABAK <n> BESAR.
+ */
+export function labelBabakBagan(round: number, totalRounds: number): string {
+  const sisa = Math.pow(2, totalRounds - round + 1)
+  if (sisa <= 2) return 'Final'
+  if (sisa === 4) return 'Semifinal'
+  if (sisa === 8) return 'Perempat Final'
+  return `Babak ${sisa} Besar`
+}
+
 export function validateGames(games: Game[], bestOf: number): ValidasiGame {
   const need = gamesToWin(bestOf)
   if (!games.length) return { ok: false, error: 'Minimal satu game harus diisi.' }

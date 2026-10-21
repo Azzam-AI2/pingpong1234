@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   bracketSize,
+  labelBabakBagan,
   drawBracket,
   gamesToWin,
   pemenangTurnamen,
@@ -248,5 +249,18 @@ describe('resolveWinner', () => {
       next_slot: null,
     }
     expect(resolveWinner(m, 3)).toBe('b')
+  })
+})
+
+describe('nama babak pada bagan', () => {
+  it('menamai babak sesuai jumlah peserta yang tersisa', () => {
+    expect(labelBabakBagan(4, 4)).toBe('Final')
+    expect(labelBabakBagan(3, 4)).toBe('Semifinal')
+    expect(labelBabakBagan(2, 4)).toBe('Perempat Final')
+    expect(labelBabakBagan(1, 4)).toBe('Babak 16 Besar')
+    expect(labelBabakBagan(1, 5)).toBe('Babak 32 Besar')
+    expect(labelBabakBagan(1, 3)).toBe('Perempat Final')
+    expect(labelBabakBagan(1, 2)).toBe('Semifinal')
+    expect(labelBabakBagan(1, 1)).toBe('Final')
   })
 })

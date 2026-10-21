@@ -32,8 +32,12 @@ pertandingan — ketuk kartu pertandingan untuk mengisi").
 
 **Knockout**: peserta Single (individu) atau Double (pasangan, ditentukan sebelum mulai), Best of 3/5,
 undi bracket acak, bye otomatis untuk jumlah peserta non-pangkat dua, skor per game dengan validasi,
-pemenang maju otomatis, bracket bisa dibaca di HP (kolom geser), status Draft → Berlangsung → Selesai,
-juara tampil dengan animasi (konfeti + kartu juara).
+pemenang maju otomatis, status Draft → Berlangsung → Selesai, juara tampil dengan animasi (konfeti +
+kartu juara). **Bagan** disusun satu kolom per babak (BABAK 32/16 BESAR → PEREMPAT FINAL → SEMIFINAL →
+FINAL) dengan kartu berisi dua baris nama: pemenang tebal + jumlah game menang, yang kalah abu-abu
+dicoret, BYE ditulis miring, slot yang belum terisi "—", bilah **Input skor** di kartu yang siap diisi,
+dan rincian skor tiap game di bawah kartu (mis. 11–9, 5–11, 11–7). Tiap kartu diposisikan di tengah
+antara dua kartu penyisihnya, dan bagan bisa digeser mendatar di layar HP.
 
 **Americano**: 4 pemain per meja (2 vs 2), sisa pemain istirahat bergiliran, jadwal rotasi pasangan dibuat
 otomatis sambil menekan pengulangan pasangan/lawan, target poin 11/15/21/24, durasi pertandingan opsional
