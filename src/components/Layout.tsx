@@ -56,8 +56,8 @@ export function Layout({
     : 0
 
   return (
-    <div className="min-h-full bg-ink-900 pb-24 sm:pb-8">
-      <header className="sticky top-0 z-30 border-b border-white/10 bg-ink-900/90 backdrop-blur">
+    <div className="min-h-full pb-24 sm:pb-8">
+      <header className="sticky top-0 z-30 border-b border-ink/10 bg-surface/85 backdrop-blur">
         <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-3">
           <div className="flex items-center justify-between gap-3">
             {didalamKlub && klubAktif ? (
@@ -70,10 +70,10 @@ export function Layout({
                   </span>
                 )}
                 <span className="min-w-0">
-                  <span className="block truncate text-sm font-semibold leading-tight text-slate-100">
+                  <span className="block truncate text-sm font-semibold leading-tight text-ink">
                     {klubAktif.name}
                   </span>
-                  <span className="block text-[11px] leading-tight text-slate-400">
+                  <span className="block text-[11px] leading-tight text-ink-muted">
                     {memuat ? 'Menyinkronkan data…' : `${jumlahAnggota} anggota`}
                   </span>
                 </span>
@@ -84,10 +84,10 @@ export function Layout({
                   🏓
                 </span>
                 <span>
-                  <span className="block text-sm font-semibold leading-tight text-slate-100">
+                  <span className="block text-sm font-semibold leading-tight text-ink">
                     Pingpong Club Manager
                   </span>
-                  <span className="block text-[11px] leading-tight text-slate-400">
+                  <span className="block text-[11px] leading-tight text-ink-muted">
                     {memuat ? 'Menyinkronkan data…' : 'Pilih klub untuk mulai'}
                   </span>
                 </span>
@@ -98,7 +98,7 @@ export function Layout({
               {didalamKlub && (
                 <a
                   href={keHash({ halaman: 'pilih-klub' })}
-                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-200 hover:bg-white/10"
+                  className="rounded-xl border border-ink/12 bg-ink/6 px-3 py-1.5 text-xs text-ink-soft hover:bg-ink/10"
                 >
                   ⇄ Ganti klub
                 </a>
@@ -121,7 +121,7 @@ export function Layout({
                     'rounded-xl px-3 py-2 text-sm font-medium transition-colors',
                     aktifUntuk(halaman, m.halaman)
                       ? 'bg-brand-600 text-white'
-                      : 'text-slate-300 hover:bg-white/10',
+                      : 'text-ink-soft hover:bg-ink/10',
                   )}
                 >
                   {m.label}
@@ -138,15 +138,15 @@ export function Layout({
             className={cls(
               'rounded-2xl border p-3 text-sm',
               galatMuat
-                ? 'border-rose-400/40 bg-rose-500/10 text-rose-100'
-                : 'border-amber-400/30 bg-amber-500/10 text-amber-100',
+                ? 'border-rose-600/40 bg-rose-500/10 text-rose-700'
+                : 'border-accent-500/30 bg-accent-500/10 text-accent-900',
             )}
           >
             {galatMuat ? (
               <>
                 <p className="font-semibold">Gagal memuat data dari Supabase</p>
-                <p className="mt-1 text-rose-100/90">{galatMuat}</p>
-                <p className="mt-1 text-xs text-rose-100/80">
+                <p className="mt-1 text-rose-700/90">{galatMuat}</p>
+                <p className="mt-1 text-xs text-rose-700/80">
                   Data yang kamu lihat berasal dari sesi ini saja. Periksa koneksi/kunci, lalu muat ulang.{' '}
                   <a href={keHash({ halaman: 'penyimpanan' })} className="underline">
                     Lihat panduan integrasi
@@ -171,7 +171,7 @@ export function Layout({
       <main className="mx-auto max-w-5xl px-4 py-4">{children}</main>
 
       {didalamKlub && klubId && (
-        <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-ink-800/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden">
+        <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-ink/10 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden">
           <div className="mx-auto flex max-w-md">
             {MENU.map((m) => {
               const aktif = aktifUntuk(halaman, m.halaman)
@@ -181,7 +181,7 @@ export function Layout({
                   href={keHash({ halaman: m.halaman, klubId })}
                   className={cls(
                     'flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors',
-                    aktif ? 'text-brand-300' : 'text-slate-400',
+                    aktif ? 'text-brand-800' : 'text-ink-muted',
                   )}
                 >
                   <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor" aria-hidden>

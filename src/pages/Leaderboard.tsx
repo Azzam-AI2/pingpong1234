@@ -29,8 +29,8 @@ export default function Leaderboard() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h1 className="text-lg font-semibold text-slate-100">Leaderboard</h1>
-          <p className="text-sm text-slate-400">
+          <h1 className="text-lg font-semibold text-ink">Leaderboard</h1>
+          <p className="text-sm text-ink-muted">
             Statistik pemain {klubAktif.name}, dihitung dari turnamen yang sudah dimainkan.
           </p>
         </div>
@@ -38,7 +38,7 @@ export default function Leaderboard() {
           <select
             value={urut}
             onChange={(e) => setUrut(e.target.value as UrutStat)}
-            className="rounded-xl border border-white/10 bg-ink-800 px-3 py-2 text-sm text-slate-100"
+            className="rounded-xl border border-ink/12 bg-surface-2 px-3 py-2 text-sm text-ink"
           >
             <option value="gelar">Urut: gelar juara</option>
             <option value="winrate">Urut: win rate</option>
@@ -72,7 +72,7 @@ export default function Leaderboard() {
           <div className="-mx-2 overflow-x-auto">
             <table className="w-full min-w-[30rem] text-sm">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
+                <tr className="text-left text-xs uppercase tracking-wide text-ink-muted">
                   <th className="px-2 py-2">#</th>
                   <th className="px-2 py-2">Pemain</th>
                   {tampilan === 'knockout' && (
@@ -111,43 +111,43 @@ export default function Leaderboard() {
                         ? s.americano.titles
                         : s.knockout.titles + s.americano.titles
                   return (
-                    <tr key={s.memberId} className="border-t border-white/5">
-                      <td className="px-2 py-2 text-slate-400">{i + 1}</td>
+                    <tr key={s.memberId} className="border-t border-ink/8">
+                      <td className="px-2 py-2 text-ink-muted">{i + 1}</td>
                       <td className="px-2 py-2">
                         <span className="flex items-center gap-2">
                           <Avatar nama={s.nama} src={s.photo_url} ukuran={28} />
-                          <span className="truncate text-slate-100">{s.nama}</span>
+                          <span className="truncate text-ink">{s.nama}</span>
                           {gelar > 0 && <Lencana warna="kuning">🏅{gelar}</Lencana>}
                         </span>
                       </td>
                       {tampilan === 'knockout' && (
                         <>
-                          <td className="px-2 py-2 text-right text-slate-300">{s.knockout.matches}</td>
-                          <td className="px-2 py-2 text-right text-emerald-300">{s.knockout.wins}</td>
-                          <td className="px-2 py-2 text-right text-rose-300">{s.knockout.losses}</td>
-                          <td className="px-2 py-2 text-right text-slate-100">{s.knockout.winrate}%</td>
+                          <td className="px-2 py-2 text-right text-ink-soft">{s.knockout.matches}</td>
+                          <td className="px-2 py-2 text-right text-emerald-800">{s.knockout.wins}</td>
+                          <td className="px-2 py-2 text-right text-rose-700">{s.knockout.losses}</td>
+                          <td className="px-2 py-2 text-right text-ink">{s.knockout.winrate}%</td>
                         </>
                       )}
                       {tampilan === 'americano' && (
                         <>
-                          <td className="px-2 py-2 text-right text-slate-300">{s.americano.matches}</td>
-                          <td className="px-2 py-2 text-right text-emerald-300">{s.americano.wins}</td>
-                          <td className="px-2 py-2 text-right text-rose-300">{s.americano.losses}</td>
-                          <td className="px-2 py-2 text-right font-semibold text-slate-100">
+                          <td className="px-2 py-2 text-right text-ink-soft">{s.americano.matches}</td>
+                          <td className="px-2 py-2 text-right text-emerald-800">{s.americano.wins}</td>
+                          <td className="px-2 py-2 text-right text-rose-700">{s.americano.losses}</td>
+                          <td className="px-2 py-2 text-right font-semibold text-ink">
                             {s.americano.poin}
                           </td>
                         </>
                       )}
                       {tampilan === 'gabungan' && (
                         <>
-                          <td className="px-2 py-2 text-right text-slate-300">
+                          <td className="px-2 py-2 text-right text-ink-soft">
                             {s.knockout.matches + s.americano.matches}
                           </td>
-                          <td className="px-2 py-2 text-right text-slate-100">{s.knockout.winrate}%</td>
-                          <td className="px-2 py-2 text-right text-slate-100">{s.americano.poin}</td>
+                          <td className="px-2 py-2 text-right text-ink">{s.knockout.winrate}%</td>
+                          <td className="px-2 py-2 text-right text-ink">{s.americano.poin}</td>
                         </>
                       )}
-                      <td className="px-2 py-2 text-right text-amber-200">{gelar}</td>
+                      <td className="px-2 py-2 text-right text-accent-900">{gelar}</td>
                       <td className="px-2 py-2 text-right">
                         <Tombol kecil variasi="sekunder" onClick={() => setDetail(s)}>
                           Riwayat
@@ -159,7 +159,7 @@ export default function Leaderboard() {
               </tbody>
             </table>
           </div>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-ink-muted">
             Statistik knockout dan Americano dihitung terpisah — poin Americano tidak pernah dihitung
             sebagai kemenangan knockout.
           </p>
@@ -174,25 +174,25 @@ export default function Leaderboard() {
         {detail && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                <p className="text-xs text-slate-400">Knockout</p>
-                <p className="text-sm text-slate-100">
+              <div className="rounded-xl border border-ink/12 bg-ink/6 p-3">
+                <p className="text-xs text-ink-muted">Knockout</p>
+                <p className="text-sm text-ink">
                   {detail.knockout.matches} main · {detail.knockout.wins}M/{detail.knockout.losses}K ·{' '}
                   {detail.knockout.winrate}%
                 </p>
-                <p className="text-xs text-amber-200">🏅 {detail.knockout.titles} gelar</p>
+                <p className="text-xs text-accent-900">🏅 {detail.knockout.titles} gelar</p>
               </div>
-              <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                <p className="text-xs text-slate-400">Americano</p>
-                <p className="text-sm text-slate-100">
+              <div className="rounded-xl border border-ink/12 bg-ink/6 p-3">
+                <p className="text-xs text-ink-muted">Americano</p>
+                <p className="text-sm text-ink">
                   {detail.americano.matches} main · {detail.americano.poin} poin
                 </p>
-                <p className="text-xs text-amber-200">🏅 {detail.americano.titles} gelar</p>
+                <p className="text-xs text-accent-900">🏅 {detail.americano.titles} gelar</p>
               </div>
             </div>
 
             {[...detail.knockout.riwayat, ...detail.americano.riwayat].length === 0 ? (
-              <p className="text-sm text-slate-400">Belum ada riwayat turnamen.</p>
+              <p className="text-sm text-ink-muted">Belum ada riwayat turnamen.</p>
             ) : (
               <ul className="space-y-2">
                 {[...detail.knockout.riwayat, ...detail.americano.riwayat]
@@ -200,10 +200,10 @@ export default function Leaderboard() {
                   .map((r) => (
                     <li
                       key={`${r.jenis}-${r.tournamentId}`}
-                      className="rounded-xl border border-white/10 bg-white/[0.03] p-3"
+                      className="rounded-xl border border-ink/12 bg-ink/[0.04] p-3"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="text-sm font-medium text-slate-100">{r.nama}</span>
+                        <span className="text-sm font-medium text-ink">{r.nama}</span>
                         <span className="flex items-center gap-1.5">
                           <Lencana warna={r.jenis === 'Knockout' ? 'biru' : 'kuning'}>{r.jenis}</Lencana>
                           {r.pencapaian === 'Juara' ? (
@@ -215,7 +215,7 @@ export default function Leaderboard() {
                           )}
                         </span>
                       </div>
-                      <p className="mt-1 text-xs text-slate-400">
+                      <p className="mt-1 text-xs text-ink-muted">
                         {formatTanggal(r.tanggal)} · {r.catatan}
                       </p>
                     </li>

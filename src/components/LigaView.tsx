@@ -180,15 +180,15 @@ export function LigaView({ turnamen }: { turnamen: Tournament }) {
       <Confetti aktif={juara.length > 0} />
 
       {juara.length > 0 && (
-        <Kartu className="animate-pop-in border-amber-400/40 bg-amber-500/10 text-center">
+        <Kartu className="animate-pop-in border-accent-500/40 bg-accent-500/10 text-center">
           <p className="text-3xl">🏆</p>
-          <p className="mt-1 text-xs uppercase tracking-wide text-amber-200/80">
+          <p className="mt-1 text-xs uppercase tracking-wide text-accent-900/80">
             Juara Liga {turnamen.name}
           </p>
-          <p className="text-xl font-semibold text-amber-100">
+          <p className="text-xl font-semibold text-accent-900">
             {juara.map((j) => j.nama).join(' & ')}
           </p>
-          <p className="mt-1 text-xs text-amber-100/80">
+          <p className="mt-1 text-xs text-accent-900/80">
             {juara[0].totalPoin} poin dari {juara[0].main} pertandingan (rata-rata {juara[0].rataRata})
           </p>
         </Kartu>
@@ -197,10 +197,10 @@ export function LigaView({ turnamen }: { turnamen: Tournament }) {
       {!ronde.length ? (
         <Kartu className="space-y-4">
           <div>
-            <h2 className="text-sm font-semibold text-slate-200">
+            <h2 className="text-sm font-semibold text-ink-soft">
               Pilih peserta liga ({format === 'double' ? 'pasangan tetap' : 'pemain'})
             </h2>
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs text-ink-muted">
               {format === 'double'
                 ? 'Pasangan tetap selama liga. Satu anggota hanya boleh masuk satu pasangan.'
                 : 'Setiap peserta akan bertemu peserta lain.'}{' '}
@@ -222,8 +222,8 @@ export function LigaView({ turnamen }: { turnamen: Tournament }) {
                   className={cls(
                     'flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2',
                     pilihSingle.includes(m.id)
-                      ? 'border-brand-400/50 bg-brand-500/10'
-                      : 'border-white/10 bg-white/5',
+                      ? 'border-brand-600/50 bg-brand-500/10'
+                      : 'border-ink/12 bg-ink/6',
                   )}
                 >
                   <input
@@ -237,7 +237,7 @@ export function LigaView({ turnamen }: { turnamen: Tournament }) {
                     }
                   />
                   <Avatar nama={m.name} src={m.photo_url} ukuran={30} />
-                  <span className="text-sm text-slate-100">{m.name}</span>
+                  <span className="text-sm text-ink">{m.name}</span>
                 </label>
               ))}
             </div>
@@ -264,7 +264,7 @@ export function LigaView({ turnamen }: { turnamen: Tournament }) {
             </Kolom>
           </div>
 
-          {galat && <p className="text-sm text-rose-400">{galat}</p>}
+          {galat && <p className="text-sm text-rose-700">{galat}</p>}
 
           <Tombol onClick={() => buatJadwal(false)} disabled={sibuk || anggota.length < 2}>
             📅 Buat jadwal liga
@@ -294,7 +294,7 @@ export function LigaView({ turnamen }: { turnamen: Tournament }) {
               return (
                 <Kartu key={r.id} className="space-y-3">
                   <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-sm font-semibold text-slate-100">Ronde {r.round_no}</h3>
+                    <h3 className="text-sm font-semibold text-ink">Ronde {r.round_no}</h3>
                     {matchesRonde.every((m) => m.score_a !== null && m.score_b !== null) && (
                       <Lencana warna="hijau">skor lengkap</Lencana>
                     )}
@@ -305,22 +305,22 @@ export function LigaView({ turnamen }: { turnamen: Tournament }) {
                     const ada = m.score_a !== null && m.score_b !== null
                     const salah = peringatanSkor(s)
                     return (
-                      <div key={m.id} className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-                        <p className="text-xs text-slate-400">Lapangan {m.court_no}</p>
+                      <div key={m.id} className="rounded-xl border border-ink/12 bg-ink/[0.04] p-3">
+                        <p className="text-xs text-ink-muted">Lapangan {m.court_no}</p>
                         <div className="mt-1 grid gap-2 sm:grid-cols-[1fr_auto]">
                           <div className="space-y-1">
-                            <div className="flex items-center justify-between gap-2 text-sm text-slate-100">
+                            <div className="flex items-center justify-between gap-2 text-sm text-ink">
                               <span className="truncate">{namaTim(m.team_a)}</span>
                               {ada && m.score_a !== null && m.score_b !== null && (
-                                <span className={m.score_a > m.score_b ? 'text-emerald-300' : 'text-slate-400'}>
+                                <span className={m.score_a > m.score_b ? 'text-emerald-800' : 'text-ink-muted'}>
                                   {m.score_a > m.score_b ? 'menang' : ''}
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center justify-between gap-2 text-sm text-slate-100">
+                            <div className="flex items-center justify-between gap-2 text-sm text-ink">
                               <span className="truncate">{namaTim(m.team_b)}</span>
                               {ada && m.score_a !== null && m.score_b !== null && (
-                                <span className={m.score_b > m.score_a ? 'text-emerald-300' : 'text-slate-400'}>
+                                <span className={m.score_b > m.score_a ? 'text-emerald-800' : 'text-ink-muted'}>
                                   {m.score_b > m.score_a ? 'menang' : ''}
                                 </span>
                               )}
@@ -334,7 +334,7 @@ export function LigaView({ turnamen }: { turnamen: Tournament }) {
                               onChange={(e) => ubah(m.id, 'a', e.target.value)}
                               placeholder="0"
                             />
-                            <span className="text-slate-500">-</span>
+                            <span className="text-ink-faint">-</span>
                             <Input
                               inputMode="numeric"
                               className="w-16 text-center"
@@ -347,13 +347,13 @@ export function LigaView({ turnamen }: { turnamen: Tournament }) {
                             </Tombol>
                           </div>
                         </div>
-                        {salah && <p className="mt-1 text-xs text-rose-400">{salah}</p>}
+                        {salah && <p className="mt-1 text-xs text-rose-700">{salah}</p>}
                       </div>
                     )
                   })}
 
                   {istirahat.length > 0 && (
-                    <p className="text-xs text-amber-200">Istirahat: {istirahat.join(', ')}</p>
+                    <p className="text-xs text-accent-900">Istirahat: {istirahat.join(', ')}</p>
                   )}
                 </Kartu>
               )
@@ -361,13 +361,13 @@ export function LigaView({ turnamen }: { turnamen: Tournament }) {
           </div>
 
           <Kartu className="space-y-3">
-            <h3 className="text-sm font-semibold text-slate-100">
+            <h3 className="text-sm font-semibold text-ink">
               Klasemen liga {format === 'double' ? '(peringkat pasangan)' : '(peringkat pemain)'}
             </h3>
             <div className="-mx-2 overflow-x-auto">
               <table className="w-full min-w-[32rem] text-sm">
                 <thead>
-                  <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
+                  <tr className="text-left text-xs uppercase tracking-wide text-ink-muted">
                     <th className="px-2 py-2">#</th>
                     <th className="px-2 py-2">{format === 'double' ? 'Pasangan' : 'Pemain'}</th>
                     <th className="px-2 py-2 text-right">Main</th>
@@ -381,27 +381,27 @@ export function LigaView({ turnamen }: { turnamen: Tournament }) {
                     <tr
                       key={k.kunci}
                       className={cls(
-                        'border-t border-white/5',
-                        juara.some((j) => j.kunci === k.kunci) && 'bg-amber-500/10',
+                        'border-t border-ink/8',
+                        juara.some((j) => j.kunci === k.kunci) && 'bg-accent-500/10',
                       )}
                     >
-                      <td className="px-2 py-2 text-slate-400">{k.peringkat}</td>
-                      <td className="px-2 py-2 text-slate-100">
+                      <td className="px-2 py-2 text-ink-muted">{k.peringkat}</td>
+                      <td className="px-2 py-2 text-ink">
                         {k.nama}
                         {juara.some((j) => j.kunci === k.kunci) && ' 🏆'}
                       </td>
-                      <td className="px-2 py-2 text-right text-slate-300">{k.main}</td>
-                      <td className="px-2 py-2 text-right font-semibold text-slate-100">{k.totalPoin}</td>
-                      <td className="px-2 py-2 text-right text-slate-300">
+                      <td className="px-2 py-2 text-right text-ink-soft">{k.main}</td>
+                      <td className="px-2 py-2 text-right font-semibold text-ink">{k.totalPoin}</td>
+                      <td className="px-2 py-2 text-right text-ink-soft">
                         {k.menang} / {k.kalah}
                       </td>
-                      <td className="px-2 py-2 text-right text-slate-300">{k.rataRata}</td>
+                      <td className="px-2 py-2 text-right text-ink-soft">{k.rataRata}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-ink-muted">
               Juara = total poin tertinggi; seri diputus rata-rata poin lalu jumlah kemenangan. Poin
               dihitung ulang dari hasil tersimpan, jadi mengedit atau membatalkan skor tidak pernah
               menghitung ganda.
@@ -409,13 +409,13 @@ export function LigaView({ turnamen }: { turnamen: Tournament }) {
 
             {format === 'double' && klasemen.pemain.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
                   Statistik individu (tidak menambah poin klasemen pasangan)
                 </p>
                 <div className="-mx-2 overflow-x-auto">
                   <table className="w-full min-w-[24rem] text-sm">
                     <thead>
-                      <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
+                      <tr className="text-left text-xs uppercase tracking-wide text-ink-muted">
                         <th className="px-2 py-2">Pemain</th>
                         <th className="px-2 py-2 text-right">Main</th>
                         <th className="px-2 py-2 text-right">Poin</th>
@@ -424,11 +424,11 @@ export function LigaView({ turnamen }: { turnamen: Tournament }) {
                     </thead>
                     <tbody>
                       {klasemen.pemain.map((p) => (
-                        <tr key={p.kunci} className="border-t border-white/5">
-                          <td className="px-2 py-2 text-slate-100">{p.nama}</td>
-                          <td className="px-2 py-2 text-right text-slate-300">{p.main}</td>
-                          <td className="px-2 py-2 text-right text-slate-300">{p.totalPoin}</td>
-                          <td className="px-2 py-2 text-right text-slate-300">{p.rataRata}</td>
+                        <tr key={p.kunci} className="border-t border-ink/8">
+                          <td className="px-2 py-2 text-ink">{p.nama}</td>
+                          <td className="px-2 py-2 text-right text-ink-soft">{p.main}</td>
+                          <td className="px-2 py-2 text-right text-ink-soft">{p.totalPoin}</td>
+                          <td className="px-2 py-2 text-right text-ink-soft">{p.rataRata}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -438,7 +438,7 @@ export function LigaView({ turnamen }: { turnamen: Tournament }) {
             )}
 
             {!selesaiSemua && (
-              <p className="text-xs text-amber-200">
+              <p className="text-xs text-accent-900">
                 Klasemen bersifat sementara. Poin hanya dihitung dari pertandingan yang skornya sudah
                 lengkap.
               </p>

@@ -1,18 +1,38 @@
 @import 'tailwindcss';
 
+/*
+  Palet disamakan dengan aplikasi rujukan (klub-records-hub):
+  latar krem hangat, kartu putih, hijau meja pingpong sebagai warna utama,
+  oranye bola sebagai aksen. Semua token semantik — komponen tidak lagi
+  memakai warna mentah (slate/white) untuk tema gelap.
+*/
 @theme {
-  --color-brand-50: #eef7ff;
-  --color-brand-100: #d9edff;
-  --color-brand-200: #bce0ff;
-  --color-brand-300: #8ecdff;
-  --color-brand-400: #59b0ff;
-  --color-brand-500: #338fff;
-  --color-brand-600: #1b6ff5;
-  --color-brand-700: #1457e1;
-  --color-brand-800: #1747b6;
-  --color-brand-900: #19408f;
-  --color-ink-900: #0d1526;
-  --color-ink-800: #16203a;
+  /* Permukaan */
+  --color-paper: oklch(97.5% 0.012 95);
+  --color-surface: oklch(99.5% 0.005 95);
+  --color-surface-2: oklch(93% 0.03 150);
+
+  /* Tinta (teks & garis) */
+  --color-ink: oklch(22% 0.03 160);
+  --color-ink-soft: oklch(32% 0.03 160);
+  --color-ink-muted: oklch(50% 0.035 160);
+  --color-ink-faint: oklch(62% 0.03 160);
+
+  /* Warna utama: hijau meja pingpong */
+  --color-brand-50: oklch(96% 0.028 152);
+  --color-brand-100: oklch(93% 0.04 152);
+  --color-brand-200: oklch(88% 0.055 153);
+  --color-brand-300: oklch(72% 0.075 156);
+  --color-brand-400: oklch(58% 0.09 158);
+  --color-brand-500: oklch(50% 0.1 159);
+  --color-brand-600: oklch(42% 0.1 160);
+  --color-brand-700: oklch(36% 0.09 160);
+  --color-brand-800: oklch(29% 0.08 160);
+  --color-brand-900: oklch(23% 0.06 160);
+
+  /* Aksen: oranye bola pingpong */
+  --color-accent-500: oklch(72% 0.17 50);
+  --color-accent-900: oklch(34% 0.085 55); /* teks di atas tint aksen */
 }
 
 html,
@@ -23,9 +43,29 @@ body,
 
 body {
   margin: 0;
-  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    'DM Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
-  background: #0d1526;
+  color: var(--color-ink);
+  background: var(--color-paper);
+}
+
+/* Cahaya hijau di kiri atas + hangat oranye di kanan atas, lembut di latar. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(1100px 480px at 12% -10%, oklch(93% 0.045 152 / 0.55), transparent 62%),
+    radial-gradient(900px 420px at 100% -5%, oklch(90% 0.08 60 / 0.32), transparent 58%);
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
 }
 
 @keyframes pop-in {

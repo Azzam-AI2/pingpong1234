@@ -170,8 +170,8 @@ export default function Turnamen({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-lg font-semibold text-slate-100">
-          Turnamen <span className="text-sm font-normal text-slate-400">· {klubAktif.name}</span>
+        <h1 className="text-lg font-semibold text-ink">
+          Turnamen <span className="text-sm font-normal text-ink-muted">· {klubAktif.name}</span>
         </h1>
         <Tombol
           onClick={() => {
@@ -212,7 +212,7 @@ export default function Turnamen({
             type="button"
             onClick={() => setFilter(nilai)}
             className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
-              filter === nilai ? 'bg-brand-600 text-white' : 'bg-white/5 text-slate-300 hover:bg-white/10'
+              filter === nilai ? 'bg-brand-600 text-white' : 'bg-ink/6 text-ink-soft hover:bg-ink/10'
             }`}
           >
             {label}
@@ -228,8 +228,8 @@ export default function Turnamen({
               <Kartu key={t.id}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="truncate font-semibold text-slate-100">{t.name}</p>
-                    <p className="text-xs text-slate-400">
+                    <p className="truncate font-semibold text-ink">{t.name}</p>
+                    <p className="text-xs text-ink-muted">
                       {t.type === 'liga'
                         ? `${formatTanggal(t.date)} – ${formatTanggal(t.date_end)}`
                         : formatTanggal(t.date)}
@@ -263,11 +263,11 @@ export default function Turnamen({
                     </>
                   )}
                 </div>
-                <p className="mt-2 text-xs text-slate-400">
+                <p className="mt-2 text-xs text-ink-muted">
                   {info.peserta.length} peserta · {info.jumlahMatch} pertandingan
                 </p>
                 {info.juara && (
-                  <p className="mt-1 text-sm text-amber-200">🏆 Juara: {info.juara}</p>
+                  <p className="mt-1 text-sm text-accent-900">🏆 Juara: {info.juara}</p>
                 )}
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Tombol kecil onClick={() => pindah({ halaman: 'detail', klubId: t.club_id, id: t.id })}>
@@ -333,7 +333,7 @@ export default function Turnamen({
           />
         </Kolom>
 
-        <p className="rounded-xl border border-white/10 bg-white/5 p-2.5 text-xs text-slate-300">
+        <p className="rounded-xl border border-ink/12 bg-ink/6 p-2.5 text-xs text-ink-soft">
           {form?.type === 'americano'
             ? 'Pasangan dirotasi setiap ronde. Peringkat dihitung dari total poin individu, bukan jumlah kemenangan.'
             : form?.type === 'liga'
@@ -408,7 +408,7 @@ export default function Turnamen({
                 onPilih={(v) => setForm({ ...form, format: v })}
               />
             </Kolom>
-            <p className="rounded-xl border border-white/10 bg-white/5 p-2.5 text-xs text-slate-300">
+            <p className="rounded-xl border border-ink/12 bg-ink/6 p-2.5 text-xs text-ink-soft">
               Skor tiap pertandingan liga dimainkan sampai <b>11 poin</b> (mis. 11-9, 11-10, 5-11);
               tidak ada pilihan target lain. Poin yang dicetak dijumlahkan sepanjang liga.
             </p>
@@ -428,7 +428,7 @@ export default function Turnamen({
           </>
         )}
 
-        {galat && <p className="text-sm text-rose-400">{galat}</p>}
+        {galat && <p className="text-sm text-rose-700">{galat}</p>}
       </Modal>
 
       <Konfirmasi

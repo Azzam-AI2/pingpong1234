@@ -9,8 +9,8 @@ import { ringkasDashboard } from '../lib/stats'
 function Stat({ label, nilai, warna }: { label: string; nilai: string | number; warna?: string }) {
   return (
     <Kartu className="flex flex-col gap-1">
-      <span className="text-xs text-slate-400">{label}</span>
-      <span className={`text-2xl font-semibold ${warna ?? 'text-slate-100'}`}>{nilai}</span>
+      <span className="text-xs text-ink-muted">{label}</span>
+      <span className={`text-2xl font-semibold ${warna ?? 'text-ink'}`}>{nilai}</span>
     </Kartu>
   )
 }
@@ -71,8 +71,8 @@ export function Dashboard() {
 
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Stat label="Anggota" nilai={data.jumlahAnggota} />
-        <Stat label="Turnamen berjalan" nilai={data.turnamenAktif} warna="text-brand-300" />
-        <Stat label="Turnamen selesai" nilai={data.turnamenSelesai} warna="text-emerald-300" />
+        <Stat label="Turnamen berjalan" nilai={data.turnamenAktif} warna="text-brand-800" />
+        <Stat label="Turnamen selesai" nilai={data.turnamenSelesai} warna="text-emerald-800" />
       </section>
 
       <section className="flex flex-wrap gap-2">
@@ -89,21 +89,21 @@ export function Dashboard() {
 
       {berjalan.length > 0 && (
         <Kartu className="space-y-2">
-          <h2 className="text-sm font-semibold text-slate-200">Sedang berjalan</h2>
+          <h2 className="text-sm font-semibold text-ink-soft">Sedang berjalan</h2>
           <ul className="space-y-2">
             {berjalan.map(({ t, total, terisi }) => (
               <li key={t.id}>
                 <a
                   href={keHash({ halaman: 'detail', klubId, id: t.id })}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3 hover:bg-white/10"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-ink/12 bg-ink/[0.04] p-3 hover:bg-ink/10"
                 >
                   <span className="min-w-0">
-                    <span className="block truncate text-sm font-medium text-slate-100">{t.name}</span>
-                    <span className="block text-xs text-slate-400">
+                    <span className="block truncate text-sm font-medium text-ink">{t.name}</span>
+                    <span className="block text-xs text-ink-muted">
                       {t.type === 'knockout' ? 'Knockout' : 'Americano'} · skor {terisi} dari {total}
                     </span>
                   </span>
-                  <span className="shrink-0 text-xs text-brand-200">
+                  <span className="shrink-0 text-xs text-brand-800">
                     {total === 0 ? 'atur peserta →' : terisi === total ? 'tandai selesai →' : 'isi skor →'}
                   </span>
                 </a>
@@ -115,45 +115,45 @@ export function Dashboard() {
 
       <section className="grid gap-3 sm:grid-cols-2">
         <Kartu>
-          <h2 className="mb-2 text-sm font-semibold text-slate-200">Juara terbaru</h2>
+          <h2 className="mb-2 text-sm font-semibold text-ink-soft">Juara terbaru</h2>
           {data.juaraTerbaru ? (
             <div className="animate-pop-in">
-              <p className="text-lg font-semibold text-amber-200">🏆 {data.juaraTerbaru.nama}</p>
-              <p className="mt-1 text-sm text-slate-300">{data.juaraTerbaru.turnamen}</p>
-              <p className="text-xs text-slate-400">
+              <p className="text-lg font-semibold text-accent-900">🏆 {data.juaraTerbaru.nama}</p>
+              <p className="mt-1 text-sm text-ink-soft">{data.juaraTerbaru.turnamen}</p>
+              <p className="text-xs text-ink-muted">
                 {data.juaraTerbaru.jenis} · {formatTanggal(data.juaraTerbaru.tanggal)}
               </p>
             </div>
           ) : (
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-ink-muted">
               Belum ada juara. Selesaikan turnamen knockout atau lengkapi skor Americano.
             </p>
           )}
         </Kartu>
 
         <Kartu>
-          <h2 className="mb-2 text-sm font-semibold text-slate-200">Top pemain</h2>
+          <h2 className="mb-2 text-sm font-semibold text-ink-soft">Top pemain</h2>
           {data.topPemain.length ? (
             <ul className="space-y-2">
               {data.topPemain.map((p, i) => (
                 <li key={p.nama} className="flex items-center gap-3">
                   <Avatar nama={p.nama} ukuran={34} />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-slate-100">{p.nama}</p>
-                    <p className="text-xs text-slate-400">
+                    <p className="truncate text-sm font-medium text-ink">{p.nama}</p>
+                    <p className="text-xs text-ink-muted">
                       {p.matches} pertandingan · win rate {p.winrate}%
                     </p>
                   </div>
                   {p.gelar > 0 ? (
                     <Lencana warna="kuning">🏅 {p.gelar} gelar</Lencana>
                   ) : (
-                    <span className="text-xs text-slate-500">#{i + 1}</span>
+                    <span className="text-xs text-ink-faint">#{i + 1}</span>
                   )}
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-slate-400">Belum ada pertandingan yang dimainkan di klub ini.</p>
+            <p className="text-sm text-ink-muted">Belum ada pertandingan yang dimainkan di klub ini.</p>
           )}
         </Kartu>
       </section>

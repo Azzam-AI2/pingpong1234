@@ -162,13 +162,13 @@ export function AmericanoView({ turnamen }: { turnamen: Tournament }) {
       <Confetti aktif={juara.length > 0} />
 
       {juara.length > 0 && (
-        <Kartu className="animate-pop-in border-amber-400/40 bg-amber-500/10 text-center">
+        <Kartu className="animate-pop-in border-accent-500/40 bg-accent-500/10 text-center">
           <p className="text-3xl">🏆</p>
-          <p className="mt-1 text-xs uppercase tracking-wide text-amber-200/80">Juara Americano</p>
-          <p className="text-xl font-semibold text-amber-100">
+          <p className="mt-1 text-xs uppercase tracking-wide text-accent-900/80">Juara Americano</p>
+          <p className="text-xl font-semibold text-accent-900">
             {juara.map((k) => namaAnggota(k.memberId)).join(' & ')}
           </p>
-          <p className="mt-1 text-xs text-amber-100/80">
+          <p className="mt-1 text-xs text-accent-900/80">
             {juara[0].points} poin dari {juara[0].matches} pertandingan
           </p>
         </Kartu>
@@ -177,8 +177,8 @@ export function AmericanoView({ turnamen }: { turnamen: Tournament }) {
       {!ronde.length ? (
         <Kartu className="space-y-4">
           <div>
-            <h2 className="text-sm font-semibold text-slate-200">Pilih pemain & jumlah ronde</h2>
-            <p className="mt-1 text-xs text-slate-400">
+            <h2 className="text-sm font-semibold text-ink-soft">Pilih pemain & jumlah ronde</h2>
+            <p className="mt-1 text-xs text-ink-muted">
               Jumlah ideal kelipatan 4. Kalau tidak, pemain sisa istirahat bergiliran tiap ronde dan tetap
               mendapat poin saat bermain.
             </p>
@@ -195,8 +195,8 @@ export function AmericanoView({ turnamen }: { turnamen: Tournament }) {
                     className={cls(
                       'flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2',
                       pilih.includes(m.id)
-                        ? 'border-brand-400/50 bg-brand-500/10'
-                        : 'border-white/10 bg-white/5',
+                        ? 'border-brand-600/50 bg-brand-500/10'
+                        : 'border-ink/12 bg-ink/6',
                     )}
                   >
                     <input
@@ -210,7 +210,7 @@ export function AmericanoView({ turnamen }: { turnamen: Tournament }) {
                       }
                     />
                     <Avatar nama={m.name} src={m.photo_url} ukuran={30} />
-                    <span className="text-sm text-slate-100">{m.name}</span>
+                    <span className="text-sm text-ink">{m.name}</span>
                   </label>
                 ))}
               </div>
@@ -228,7 +228,7 @@ export function AmericanoView({ turnamen }: { turnamen: Tournament }) {
                   />
                 </Kolom>
                 <div className="flex items-end">
-                  <div className="text-xs text-slate-400">
+                  <div className="text-xs text-ink-muted">
                     <p>Target poin: {turnamen.target_points} per pertandingan.</p>
                     <p>{pilih.length % 4 !== 0 && pilih.length >= 4 ? `${pilih.length % 4} pemain istirahat per ronde.` : 'Semua pemain bermain tiap ronde.'}</p>
                   </div>
@@ -237,7 +237,7 @@ export function AmericanoView({ turnamen }: { turnamen: Tournament }) {
             </>
           )}
 
-          {galat && <p className="text-sm text-rose-400">{galat}</p>}
+          {galat && <p className="text-sm text-rose-700">{galat}</p>}
 
           <Tombol onClick={buatJadwal} disabled={sibuk || anggota.length < 4}>
             🎲 Buat jadwal rotasi pasangan
@@ -258,8 +258,8 @@ export function AmericanoView({ turnamen }: { turnamen: Tournament }) {
           {menit > 0 && (
             <Kartu className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-xs text-slate-400">Timer pertandingan ({menit} menit)</p>
-                <p className="text-2xl font-semibold tabular-nums text-slate-100">{mmss}</p>
+                <p className="text-xs text-ink-muted">Timer pertandingan ({menit} menit)</p>
+                <p className="text-2xl font-semibold tabular-nums text-ink">{mmss}</p>
               </div>
               <div className="flex gap-2">
                 <Tombol kecil onClick={() => setJalan((v) => !v)}>
@@ -287,7 +287,7 @@ export function AmericanoView({ turnamen }: { turnamen: Tournament }) {
               return (
                 <Kartu key={r.id} className="space-y-3">
                   <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-sm font-semibold text-slate-100">Ronde {r.round_no}</h3>
+                    <h3 className="text-sm font-semibold text-ink">Ronde {r.round_no}</h3>
                     {matchesRonde.every((m) => m.score_a !== null && m.score_b !== null) && (
                       <Lencana warna="hijau">skor lengkap</Lencana>
                     )}
@@ -297,26 +297,26 @@ export function AmericanoView({ turnamen }: { turnamen: Tournament }) {
                     const s = skor[m.id] ?? { a: '', b: '' }
                     const ada = m.score_a !== null && m.score_b !== null
                     return (
-                      <div key={m.id} className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
-                        <p className="text-xs text-slate-400">Meja {m.table_no}</p>
+                      <div key={m.id} className="rounded-xl border border-ink/12 bg-ink/[0.04] p-3">
+                        <p className="text-xs text-ink-muted">Meja {m.table_no}</p>
                         <div className="mt-1 grid gap-2 sm:grid-cols-[1fr_auto]">
                           <div className="space-y-1">
-                            <div className="flex items-center justify-between gap-2 text-sm text-slate-100">
+                            <div className="flex items-center justify-between gap-2 text-sm text-ink">
                               <span className="truncate">
                                 {m.team_a.map((id) => namaAnggota(id)).join(' & ')}
                               </span>
                               {ada && m.score_a !== null && m.score_b !== null && (
-                                <span className={m.score_a > m.score_b ? 'text-emerald-300' : 'text-slate-400'}>
+                                <span className={m.score_a > m.score_b ? 'text-emerald-800' : 'text-ink-muted'}>
                                   {m.score_a > m.score_b ? 'menang' : ''}
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center justify-between gap-2 text-sm text-slate-100">
+                            <div className="flex items-center justify-between gap-2 text-sm text-ink">
                               <span className="truncate">
                                 {m.team_b.map((id) => namaAnggota(id)).join(' & ')}
                               </span>
                               {ada && m.score_a !== null && m.score_b !== null && (
-                                <span className={m.score_b > m.score_a ? 'text-emerald-300' : 'text-slate-400'}>
+                                <span className={m.score_b > m.score_a ? 'text-emerald-800' : 'text-ink-muted'}>
                                   {m.score_b > m.score_a ? 'menang' : ''}
                                 </span>
                               )}
@@ -330,7 +330,7 @@ export function AmericanoView({ turnamen }: { turnamen: Tournament }) {
                               onChange={(e) => ubah(m.id, 'a', e.target.value)}
                               placeholder="0"
                             />
-                            <span className="text-slate-500">-</span>
+                            <span className="text-ink-faint">-</span>
                             <Input
                               inputMode="numeric"
                               className="w-16 text-center"
@@ -348,7 +348,7 @@ export function AmericanoView({ turnamen }: { turnamen: Tournament }) {
                   })}
 
                   {istirahat.length > 0 && (
-                    <p className="text-xs text-amber-200">
+                    <p className="text-xs text-accent-900">
                       Istirahat: {istirahat.map((id) => namaAnggota(id)).join(', ')}
                     </p>
                   )}
@@ -359,13 +359,13 @@ export function AmericanoView({ turnamen }: { turnamen: Tournament }) {
 
           <Kartu className="space-y-3">
             <div className="flex items-center justify-between gap-2">
-              <h3 className="text-sm font-semibold text-slate-100">Klasemen individu</h3>
+              <h3 className="text-sm font-semibold text-ink">Klasemen individu</h3>
               {selesaiSemua && <Lencana warna="hijau">Semua skor lengkap</Lencana>}
             </div>
             <div className="-mx-2 overflow-x-auto">
               <table className="w-full min-w-[28rem] text-sm">
                 <thead>
-                  <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
+                  <tr className="text-left text-xs uppercase tracking-wide text-ink-muted">
                     <th className="px-2 py-2">#</th>
                     <th className="px-2 py-2">Pemain</th>
                     <th className="px-2 py-2 text-right">Main</th>
@@ -375,26 +375,26 @@ export function AmericanoView({ turnamen }: { turnamen: Tournament }) {
                 </thead>
                 <tbody>
                   {klasemen.map((k) => (
-                    <tr key={k.memberId} className="border-t border-white/5">
-                      <td className="px-2 py-2 text-slate-400">{k.rank}</td>
+                    <tr key={k.memberId} className="border-t border-ink/8">
+                      <td className="px-2 py-2 text-ink-muted">{k.rank}</td>
                       <td className="px-2 py-2">
                         <span className="flex items-center gap-2">
                           <Avatar nama={namaAnggota(k.memberId)} ukuran={26} />
-                          <span className="truncate text-slate-100">{namaAnggota(k.memberId)}</span>
+                          <span className="truncate text-ink">{namaAnggota(k.memberId)}</span>
                           {juara.some((j) => j.memberId === k.memberId) && <span>🏆</span>}
                         </span>
                       </td>
-                      <td className="px-2 py-2 text-right text-slate-300">{k.matches}</td>
-                      <td className="px-2 py-2 text-right text-slate-300">
+                      <td className="px-2 py-2 text-right text-ink-soft">{k.matches}</td>
+                      <td className="px-2 py-2 text-right text-ink-soft">
                         {k.wins} / {k.losses}
                       </td>
-                      <td className="px-2 py-2 text-right font-semibold text-slate-100">{k.points}</td>
+                      <td className="px-2 py-2 text-right font-semibold text-ink">{k.points}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-ink-muted">
               Poin Americano = jumlah poin yang dicetak timmu (kedua pemain satu tim dapat poin sama). Poin ini
               tidak digabung dengan statistik knockout.
             </p>

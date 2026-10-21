@@ -30,16 +30,16 @@ export function Petunjuk({
   const [tampil, setTampil] = useState(() => !sudahDitutup(id))
   if (!tampil) return null
   return (
-    <div className="rounded-2xl border border-brand-400/30 bg-brand-500/10 p-3.5 text-sm text-brand-50">
+    <div className="rounded-2xl border border-brand-600/30 bg-brand-500/10 p-3.5 text-sm text-brand-800">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-semibold">💡 {judul}</p>
-          <div className="mt-1 space-y-1 text-brand-50/90">{children}</div>
+          <div className="mt-1 space-y-1 text-brand-800/90">{children}</div>
         </div>
         <button
           type="button"
           aria-label="Tutup petunjuk"
-          className="shrink-0 rounded-lg px-2 py-1 text-brand-100/70 hover:bg-white/10 hover:text-white"
+          className="shrink-0 rounded-lg px-2 py-1 text-brand-800/70 hover:bg-ink/10 hover:text-ink"
           onClick={() => {
             try {
               localStorage.setItem(kunciPetunjuk(id), '1')
@@ -71,9 +71,9 @@ export function LangkahBerikutnya({
   onKlik?: () => void
 }) {
   return (
-    <Kartu className="border-emerald-400/30 bg-emerald-500/10">
-      <p className="text-xs font-semibold uppercase tracking-wide text-emerald-200/90">{judul}</p>
-      <div className="mt-1 text-sm text-emerald-50">{isi}</div>
+    <Kartu className="border-emerald-600/30 bg-emerald-500/10">
+      <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800/90">{judul}</p>
+      <div className="mt-1 text-sm text-emerald-800">{isi}</div>
       {(teksTombol || onKlik) && (
         <div className="mt-3">
           {tautan ? (
@@ -113,30 +113,30 @@ function Langkah({
       className={cls(
         'flex items-start gap-3 rounded-2xl border p-3.5',
         selesai
-          ? 'border-emerald-400/30 bg-emerald-500/10'
+          ? 'border-emerald-600/30 bg-emerald-500/10'
           : aktif
-            ? 'border-brand-400/40 bg-brand-500/10'
-            : 'border-white/10 bg-white/5 opacity-70',
+            ? 'border-brand-600/40 bg-brand-500/10'
+            : 'border-ink/12 bg-ink/6 opacity-70',
       )}
     >
       <span
         className={cls(
           'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold',
-          selesai ? 'bg-emerald-500/30 text-emerald-100' : 'bg-white/10 text-slate-200',
+          selesai ? 'bg-emerald-500/30 text-emerald-800' : 'bg-ink/10 text-ink-soft',
         )}
       >
         {selesai ? '✓' : nomor}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="font-semibold text-slate-100">{judul}</p>
-        <p className="mt-0.5 text-sm text-slate-300">{keterangan}</p>
+        <p className="font-semibold text-ink">{judul}</p>
+        <p className="mt-0.5 text-sm text-ink-soft">{keterangan}</p>
         {!selesai && aktif && (
           <a href={tautan} className="mt-2 inline-block">
             <Tombol kecil>{teksTombol}</Tombol>
           </a>
         )}
         {!selesai && !aktif && (
-          <p className="mt-2 text-xs text-slate-400">Selesaikan langkah sebelumnya dulu.</p>
+          <p className="mt-2 text-xs text-ink-muted">Selesaikan langkah sebelumnya dulu.</p>
         )}
       </div>
     </li>
@@ -166,17 +166,17 @@ export function MulaiDariSini({
     <Kartu className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="text-base font-semibold text-slate-100">Mulai dari sini</h2>
-          <p className="text-sm text-slate-400">
+          <h2 className="text-base font-semibold text-ink">Mulai dari sini</h2>
+          <p className="text-sm text-ink-muted">
             Tiga langkah supaya klub bisa dipakai turnamen. Progres {selesai} dari 3.
           </p>
         </div>
-        <span className="rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200">
+        <span className="rounded-full bg-ink/10 px-3 py-1 text-xs text-ink-soft">
           {selesai}/3 selesai
         </span>
       </div>
 
-      <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-ink/10">
         <div
           className="h-full rounded-full bg-emerald-500 transition-all"
           style={{ width: `${(selesai / 3) * 100}%` }}
@@ -214,7 +214,7 @@ export function MulaiDariSini({
       </ul>
 
       {!klubId && (
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-ink-muted">
           Masuk ke klub dulu untuk menambah anggota dan membuat turnamen.
         </p>
       )}
@@ -252,18 +252,18 @@ export function PenjelasanJenis({ ringkas = false }: { ringkas?: boolean }) {
           key={j.nama}
           className={cls(
             'rounded-xl border p-3',
-            j.segera ? 'border-white/10 bg-white/[0.03] opacity-70' : 'border-white/10 bg-white/5',
+            j.segera ? 'border-ink/12 bg-ink/[0.04] opacity-70' : 'border-ink/12 bg-ink/6',
           )}
         >
-          <p className="flex items-center gap-2 text-sm font-semibold text-slate-100">
+          <p className="flex items-center gap-2 text-sm font-semibold text-ink">
             <span>{j.ikon}</span> {j.nama}
             {j.segera && (
-              <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-normal text-slate-300">
+              <span className="rounded-full bg-ink/10 px-2 py-0.5 text-[10px] font-normal text-ink-soft">
                 segera
               </span>
             )}
           </p>
-          <p className="mt-1 text-xs text-slate-300">{j.isi}</p>
+          <p className="mt-1 text-xs text-ink-soft">{j.isi}</p>
         </div>
       ))}
     </div>

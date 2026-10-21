@@ -10,12 +10,12 @@ import schemaSql from '../../supabase/schema.sql?raw'
 function Langkah({ n, judul, children }: { n: number; judul: string; children: React.ReactNode }) {
   return (
     <li className="flex gap-3">
-      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-600/25 text-sm font-semibold text-brand-100">
+      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-600/25 text-sm font-semibold text-brand-800">
         {n}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="font-medium text-slate-100">{judul}</p>
-        <div className="mt-1 space-y-1 text-sm text-slate-300">{children}</div>
+        <p className="font-medium text-ink">{judul}</p>
+        <div className="mt-1 space-y-1 text-sm text-ink-soft">{children}</div>
       </div>
     </li>
   )
@@ -45,7 +45,7 @@ export default function Supabase() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-lg font-semibold text-slate-100">Status penyimpanan & integrasi Supabase</h1>
+      <h1 className="text-lg font-semibold text-ink">Status penyimpanan & integrasi Supabase</h1>
 
       <Kartu className="space-y-2">
         <div className="flex flex-wrap items-center gap-2">
@@ -55,10 +55,10 @@ export default function Supabase() {
           <Lencana>{jumlahData} baris data terbaca</Lencana>
           <Lencana warna={cfg.status === 'siap' ? 'hijau' : 'netral'}>Konfigurasi: {cfg.status}</Lencana>
         </div>
-        <p className="text-sm text-slate-300">{info.keterangan}</p>
-        {cfg.pesan && <p className="text-xs text-slate-400">{cfg.pesan}</p>}
+        <p className="text-sm text-ink-soft">{info.keterangan}</p>
+        {cfg.pesan && <p className="text-xs text-ink-muted">{cfg.pesan}</p>}
         {galatMuat && (
-          <p className="rounded-xl border border-rose-400/40 bg-rose-500/10 p-3 text-sm text-rose-100">
+          <p className="rounded-xl border border-rose-600/40 bg-rose-500/10 p-3 text-sm text-rose-700">
             Galat koneksi: {galatMuat}
           </p>
         )}
@@ -93,7 +93,7 @@ export default function Supabase() {
       </Kartu>
 
       <Kartu className="space-y-4">
-        <h2 className="text-sm font-semibold text-slate-200">Cara menyambungkan Supabase (gratis)</h2>
+        <h2 className="text-sm font-semibold text-ink-soft">Cara menyambungkan Supabase (gratis)</h2>
         <ol className="space-y-4">
           <Langkah n={1} judul="Buat project Supabase">
             <p>
@@ -116,7 +116,7 @@ export default function Supabase() {
             </p>
           </Langkah>
           <Langkah n={4} judul="Isi file .env di folder project">
-            <pre className="overflow-x-auto rounded-xl border border-white/10 bg-black/40 p-3 text-xs text-slate-200">
+            <pre className="overflow-x-auto rounded-xl border border-ink/12 bg-ink/[0.06] p-3 text-xs text-ink-soft">
 {`VITE_SUPABASE_URL=https://xxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOi...`}
             </pre>
@@ -135,9 +135,9 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOi...`}
         </ol>
       </Kartu>
 
-      <Kartu className="space-y-2 border-amber-400/30 bg-amber-500/5">
-        <h2 className="text-sm font-semibold text-amber-100">Catatan keamanan (penting)</h2>
-        <ul className="list-disc space-y-1 pl-5 text-sm text-amber-100/90">
+      <Kartu className="space-y-2 border-accent-500/30 bg-accent-500/5">
+        <h2 className="text-sm font-semibold text-accent-900">Catatan keamanan (penting)</h2>
+        <ul className="list-disc space-y-1 pl-5 text-sm text-accent-900/90">
           <li>
             MVP ini <b>tanpa login</b>. Siapa pun yang mengetahui alamat aplikasi bisa membaca dan mengubah data.
             Jangan simpan data sensitif (nomor telepon, alamat, NIK, data keuangan).

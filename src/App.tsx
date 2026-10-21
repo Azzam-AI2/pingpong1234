@@ -25,8 +25,8 @@ function Isi() {
     return (
       <Layout halaman={rute.halaman} klubId={rute.klubId}>
         <div className="space-y-3">
-          <div className="h-24 animate-pulse rounded-2xl bg-white/5" />
-          <div className="h-40 animate-pulse rounded-2xl bg-white/5" />
+          <div className="h-24 animate-pulse rounded-2xl bg-ink/6" />
+          <div className="h-40 animate-pulse rounded-2xl bg-ink/6" />
         </div>
       </Layout>
     )

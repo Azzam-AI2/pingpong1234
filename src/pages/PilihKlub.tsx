@@ -69,8 +69,8 @@ export default function PilihKlub({ aksi, pindah }: { aksi?: string; pindah: (t:
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h1 className="text-lg font-semibold text-slate-100">Klub kamu</h1>
-          <p className="text-sm text-slate-400">
+          <h1 className="text-lg font-semibold text-ink">Klub kamu</h1>
+          <p className="text-sm text-ink-muted">
             Pilih klub untuk membuka anggota, turnamen, dan leaderboard-nya.
           </p>
         </div>
@@ -118,7 +118,7 @@ export default function PilihKlub({ aksi, pindah }: { aksi?: string; pindah: (t:
             return (
               <Kartu
                 key={c.id}
-                className={c.id === klubTerakhir?.id ? 'ring-1 ring-brand-400/40' : undefined}
+                className={c.id === klubTerakhir?.id ? 'ring-1 ring-brand-600/40' : undefined}
               >
                 <div className="flex items-start gap-3">
                   {c.logo_url ? (
@@ -130,15 +130,15 @@ export default function PilihKlub({ aksi, pindah }: { aksi?: string; pindah: (t:
                   )}
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="truncate font-semibold text-slate-100">{c.name}</p>
+                      <p className="truncate font-semibold text-ink">{c.name}</p>
                       {c.id === klubTerakhir?.id && <Lencana warna="biru">terakhir dibuka</Lencana>}
                     </div>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-ink-muted">
                       {jumlahAnggota(c.id)} anggota · {turnamen.length} turnamen ·{' '}
                       {turnamen.filter((t) => t.status === 'finished').length} selesai
                     </p>
                     {juara && (
-                      <p className="mt-1 text-xs text-amber-200">
+                      <p className="mt-1 text-xs text-accent-900">
                         🏆 {namaJuara ? `${namaJuara} · ` : ''}
                         {juara.name} ({formatTanggal(juara.date)})
                       </p>
@@ -206,7 +206,7 @@ export default function PilihKlub({ aksi, pindah }: { aksi?: string; pindah: (t:
           nilai={form?.logo_url ?? null}
           onUbah={(v) => form && setForm({ ...form, logo_url: v })}
         />
-        {galat && <p className="text-sm text-rose-400">{galat}</p>}
+        {galat && <p className="text-sm text-rose-700">{galat}</p>}
       </Modal>
 
       <Konfirmasi

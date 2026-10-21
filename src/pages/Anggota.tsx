@@ -80,8 +80,8 @@ export default function Anggota({ aksi }: { aksi?: string }) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h1 className="text-lg font-semibold text-slate-100">Anggota</h1>
-          <p className="text-sm text-slate-400">
+          <h1 className="text-lg font-semibold text-ink">Anggota</h1>
+          <p className="text-sm text-ink-muted">
             {anggota.length} orang di {klubAktif?.name ?? 'klub ini'}
           </p>
         </div>
@@ -121,8 +121,8 @@ export default function Anggota({ aksi }: { aksi?: string }) {
                 <div className="flex items-center gap-3">
                   <Avatar nama={m.name} src={m.photo_url} ukuran={44} />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium text-slate-100">{m.name}</p>
-                    <p className="text-xs text-slate-400">
+                    <p className="truncate font-medium text-ink">{m.name}</p>
+                    <p className="text-xs text-ink-muted">
                       {m.gender === 'L' ? 'Laki-laki' : 'Perempuan'}
                       {pakai.length > 0 && ` · ikut ${pakai.length} turnamen`}
                     </p>
@@ -192,7 +192,7 @@ export default function Anggota({ aksi }: { aksi?: string }) {
           nilai={form?.photo_url ?? null}
           onUbah={(v) => form && setForm({ ...form, photo_url: v })}
         />
-        {galat && <p className="text-sm text-rose-400">{galat}</p>}
+        {galat && <p className="text-sm text-rose-700">{galat}</p>}
       </Modal>
 
       <Konfirmasi
@@ -204,7 +204,7 @@ export default function Anggota({ aksi }: { aksi?: string }) {
               Anggota <b>{terpilih?.name}</b> akan dihapus dari klub.
             </p>
             {dipakai.length > 0 && (
-              <p className="mt-2 rounded-xl border border-amber-400/30 bg-amber-500/10 p-2 text-amber-100">
+              <p className="mt-2 rounded-xl border border-accent-500/30 bg-accent-500/10 p-2 text-accent-900">
                 Perhatian: anggota ini terdaftar di {dipakai.length} turnamen (
                 {dipakai.map((t) => t.name).join(', ')}). Riwayat hasil pertandingan tetap tersimpan,
                 tetapi nama pemain pada bracket/jadwal tidak lagi terhubung ke profilnya.

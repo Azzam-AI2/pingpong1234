@@ -135,7 +135,7 @@ export default function TurnamenDetail({
     <div className="space-y-4">
       <a
         href={keHash({ halaman: 'turnamen', klubId: turnamen.club_id })}
-        className="inline-block text-sm text-slate-400 hover:text-slate-200"
+        className="inline-block text-sm text-ink-muted hover:text-ink-soft"
       >
         ← Semua turnamen
       </a>
@@ -143,8 +143,8 @@ export default function TurnamenDetail({
       <Kartu className="space-y-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
-            <h1 className="text-lg font-semibold text-slate-100">{turnamen.name}</h1>
-            <p className="text-sm text-slate-400">
+            <h1 className="text-lg font-semibold text-ink">{turnamen.name}</h1>
+            <p className="text-sm text-ink-muted">
               {turnamen.type === 'knockout'
                 ? `${formatTanggal(turnamen.date)} · Knockout ${
                     turnamen.format === 'double' ? 'Double' : 'Single'
@@ -308,7 +308,7 @@ export default function TurnamenDetail({
         )}
 
         {adaJadwal ? (
-          <p className="rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-slate-400">
+          <p className="rounded-xl border border-ink/12 bg-ink/6 p-3 text-xs text-ink-muted">
             Format{ turnamen.type === 'liga' ? ', target poin, dan jumlah ronde' : ', jumlah game, dan target poin' } tidak bisa diubah karena jadwal/pertandingan sudah dibuat.
             {turnamen.type === 'knockout'
               ? ' Pakai "Undi ulang bracket" kalau ingin mengubah susunan peserta.'
@@ -377,7 +377,7 @@ export default function TurnamenDetail({
                 onPilih={(v) => modalEdit && setModalEdit({ ...modalEdit, format: v })}
               />
             </Kolom>
-            <p className="rounded-xl border border-white/10 bg-white/5 p-2.5 text-xs text-slate-300">
+            <p className="rounded-xl border border-ink/12 bg-ink/6 p-2.5 text-xs text-ink-soft">
               Skor liga tetap dimainkan sampai <b>11 poin</b> per pertandingan.
             </p>
             <Kolom
@@ -397,7 +397,7 @@ export default function TurnamenDetail({
           </>
         )}
 
-        {galat && <p className="text-sm text-rose-400">{galat}</p>}
+        {galat && <p className="text-sm text-rose-700">{galat}</p>}
       </Modal>
 
       <Konfirmasi

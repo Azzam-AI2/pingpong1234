@@ -186,11 +186,11 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
       <Confetti aktif={Boolean(juara)} />
 
       {juaraLabel && (
-        <Kartu className="animate-pop-in border-amber-400/40 bg-amber-500/10 text-center">
+        <Kartu className="animate-pop-in border-accent-500/40 bg-accent-500/10 text-center">
           <p className="text-3xl">🏆</p>
-          <p className="mt-1 text-xs uppercase tracking-wide text-amber-200/80">Juara {turnamen.name}</p>
-          <p className="text-xl font-semibold text-amber-100">{juaraLabel}</p>
-          <p className="mt-1 text-xs text-amber-100/80">
+          <p className="mt-1 text-xs uppercase tracking-wide text-accent-900/80">Juara {turnamen.name}</p>
+          <p className="text-xl font-semibold text-accent-900">{juaraLabel}</p>
+          <p className="mt-1 text-xs text-accent-900/80">
             Menang {bestOf === 5 ? '3' : '2'} game di partai final · Best of {bestOf}
           </p>
         </Kartu>
@@ -199,10 +199,10 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
       {!matches.length ? (
         <Kartu className="space-y-4">
           <div>
-            <h2 className="text-sm font-semibold text-slate-200">
+            <h2 className="text-sm font-semibold text-ink-soft">
               Pilih peserta ({turnamen.format === 'double' ? 'pasangan double' : 'pemain single'})
             </h2>
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs text-ink-muted">
               {turnamen.format === 'double'
                 ? 'Tentukan pasangan sebelum turnamen dimulai. Satu anggota hanya boleh ikut satu pasangan.'
                 : 'Pilih anggota yang ikut turnamen. Nama peserta mengikuti nama anggota.'}
@@ -222,8 +222,8 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
                   className={cls(
                     'flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2',
                     pilihSingle.includes(m.id)
-                      ? 'border-brand-400/50 bg-brand-500/10'
-                      : 'border-white/10 bg-white/5',
+                      ? 'border-brand-600/50 bg-brand-500/10'
+                      : 'border-ink/12 bg-ink/6',
                   )}
                 >
                   <input
@@ -233,7 +233,7 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
                     onChange={() => toggleSingle(m.id)}
                   />
                   <Avatar nama={m.name} src={m.photo_url} ukuran={30} />
-                  <span className="text-sm text-slate-100">{m.name}</span>
+                  <span className="text-sm text-ink">{m.name}</span>
                 </label>
               ))}
             </div>
@@ -246,13 +246,13 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
             />
           )}
 
-          {galatPeserta && <p className="text-sm text-rose-400">{galatPeserta}</p>}
+          {galatPeserta && <p className="text-sm text-rose-700">{galatPeserta}</p>}
 
           <div className="flex flex-wrap items-center gap-2">
             <Tombol onClick={() => undi(false)} disabled={sibuk}>
               🎲 Undi bracket acak
             </Tombol>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-ink-muted">
               Jumlah peserta bukan pangkat dua? Bye dibuat otomatis.
             </span>
           </div>
@@ -273,7 +273,7 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
             <div className="flex min-w-max gap-3">
               {babak.map((r) => (
                 <div key={r} className="w-[15rem] shrink-0 space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
                     {labelBabak(matches, r)}
                   </p>
                   {matches
@@ -290,8 +290,8 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
                           className={cls(
                             'w-full rounded-xl border p-2.5 text-left transition-colors',
                             bisaDiisi
-                              ? 'border-white/10 bg-white/5 hover:border-brand-400/40 hover:bg-white/10'
-                              : 'border-dashed border-white/10 bg-white/[0.02]',
+                              ? 'border-ink/12 bg-ink/6 hover:border-brand-600/40 hover:bg-ink/10'
+                              : 'border-dashed border-ink/12 bg-ink/[0.03]',
                           )}
                         >
                           {[['a', m.participant_a], ['b', m.participant_b]].map(([sisi, pid]) => {
@@ -302,7 +302,7 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
                                 key={sisi as string}
                                 className={cls(
                                   'flex items-center justify-between gap-2 text-sm',
-                                  adalahPemenang ? 'font-semibold text-emerald-200' : 'text-slate-200',
+                                  adalahPemenang ? 'font-semibold text-emerald-800' : 'text-ink-soft',
                                 )}
                               >
                                 <span className="truncate">{nama ?? '—'}</span>
@@ -312,17 +312,17 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
                           })}
                           <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px]">
                             {m.games.length ? (
-                              <span className="text-slate-300">
+                              <span className="text-ink-soft">
                                 {m.games.map((g) => `${g.a}-${g.b}`).join(' · ')}
                               </span>
                             ) : bye ? (
-                              <span className="text-amber-200">bye — lolos otomatis</span>
+                              <span className="text-accent-900">bye — lolos otomatis</span>
                             ) : bisaDiisi ? (
-                              <span className="text-slate-400">Belum ada skor — ketuk untuk isi</span>
+                              <span className="text-ink-muted">Belum ada skor — ketuk untuk isi</span>
                             ) : (
-                              <span className="text-slate-500">Menunggu pemenang babak sebelumnya</span>
+                              <span className="text-ink-faint">Menunggu pemenang babak sebelumnya</span>
                             )}
-                            {menang && m.games.length > 0 && <span className="text-emerald-300">menang</span>}
+                            {menang && m.games.length > 0 && <span className="text-emerald-800">menang</span>}
                           </div>
                         </button>
                       )
@@ -344,7 +344,7 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
             >
               Buka partai final
             </Tombol>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-ink-muted">
               Ketuk salah satu kartu pertandingan untuk memasukkan skor tiap game.
             </span>
           </div>
@@ -390,16 +390,16 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
       >
         {matchObj && (
           <>
-            <div className="space-y-1 rounded-xl border border-white/10 bg-white/5 p-3">
-              <div className="flex items-center justify-between text-sm font-medium text-slate-100">
+            <div className="space-y-1 rounded-xl border border-ink/12 bg-ink/6 p-3">
+              <div className="flex items-center justify-between text-sm font-medium text-ink">
                 <span className="truncate">{namaPeserta(matchObj.participant_a)}</span>
-                <span className="text-slate-400">vs</span>
+                <span className="text-ink-muted">vs</span>
                 <span className="truncate text-right">{namaPeserta(matchObj.participant_b)}</span>
               </div>
-              <p className="text-center text-xs text-slate-400">
+              <p className="text-center text-xs text-ink-muted">
                 Best of {bestOf} · butuh {butuhMenang} game kemenangan
               </p>
-              <p className="text-center text-xs text-brand-200">
+              <p className="text-center text-xs text-brand-800">
                 Setiap game dimainkan sampai 11 poin (mis. 11-9, 11-10, 5-11).
               </p>
             </div>
@@ -407,7 +407,7 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
             <div className="space-y-2">
               {skor.map((g, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <span className="w-14 text-xs text-slate-400">Game {i + 1}</span>
+                  <span className="w-14 text-xs text-ink-muted">Game {i + 1}</span>
                   <Input
                     inputMode="numeric"
                     className="w-20 text-center"
@@ -415,7 +415,7 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
                     onChange={(e) => ubahSkor(i, 'a', e.target.value)}
                     placeholder="0"
                   />
-                  <span className="text-slate-500">-</span>
+                  <span className="text-ink-faint">-</span>
                   <Input
                     inputMode="numeric"
                     className="w-20 text-center"
@@ -445,12 +445,12 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
               >
                 + Tambah game
               </Tombol>
-              <span className={cls('text-xs', sudahSelesai ? 'text-emerald-300' : 'text-slate-400')}>
+              <span className={cls('text-xs', sudahSelesai ? 'text-emerald-800' : 'text-ink-muted')}>
                 Kedudukan game {menangSementara.a} - {menangSementara.b}
               </span>
             </div>
 
-            {galatSkor && <p className="text-sm text-rose-400">{galatSkor}</p>}
+            {galatSkor && <p className="text-sm text-rose-700">{galatSkor}</p>}
           </>
         )}
       </Modal>
@@ -502,10 +502,10 @@ export function PasanganBuilder({
       {pasangan.length > 0 && (
         <ul className="space-y-2">
           {pasangan.map((p, i) => (
-            <li key={i} className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-2">
+            <li key={i} className="flex items-center gap-2 rounded-xl border border-ink/12 bg-ink/6 p-2">
               <Avatar nama={anggota.find((m) => m.id === p.a)?.name ?? '?'} ukuran={28} />
               <Avatar nama={anggota.find((m) => m.id === p.b)?.name ?? '?'} ukuran={28} />
-              <span className="flex-1 truncate text-sm text-slate-100">
+              <span className="flex-1 truncate text-sm text-ink">
                 {anggota.find((m) => m.id === p.a)?.name} / {anggota.find((m) => m.id === p.b)?.name}
               </span>
               <Tombol kecil variasi="hantu" onClick={() => onHapus(i)}>
@@ -521,7 +521,7 @@ export function PasanganBuilder({
           <select
             value={a}
             onChange={(e) => setA(e.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-ink-800 px-3 py-2.5 text-sm text-slate-100"
+            className="w-full rounded-xl border border-ink/12 bg-surface-2 px-3 py-2.5 text-sm text-ink"
           >
             <option value="">Pilih…</option>
             {anggota
@@ -537,7 +537,7 @@ export function PasanganBuilder({
           <select
             value={b}
             onChange={(e) => setB(e.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-ink-800 px-3 py-2.5 text-sm text-slate-100"
+            className="w-full rounded-xl border border-ink/12 bg-surface-2 px-3 py-2.5 text-sm text-ink"
           >
             <option value="">Pilih…</option>
             {anggota
