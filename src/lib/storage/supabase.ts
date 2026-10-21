@@ -7,6 +7,7 @@ const URL_KUNCI = 'VITE_SUPABASE_URL'
 const ANON_KUNCI = 'VITE_SUPABASE_ANON_KEY'
 
 const KUNCI_MODE_LOKAL = 'pcm.paksa_lokal'
+const KUNCI_OVERRIDE = 'pcm.supabase'
 
 export interface KonfigurasiSupabase {
   status: 'siap' | 'belum-diatur' | 'kunci-terlarang' | 'url-tidak-valid'
@@ -27,10 +28,38 @@ function bacaPayloadJwt(token: string): Record<string, unknown> | null {
   }
 }
 
-/** Cek env Supabase + tolak service_role key sejak awal. */
-export function bacaKonfigurasiSupabase(env = import.meta.env): KonfigurasiSupabase {
-  const url = String(env[URL_KUNCI] ?? '').trim()
-  const anonKey = String(env[ANON_KUNCI] ?? '').trim()
+export interface OverrideSupabase {
+  url: string
+  anonKey: string
+}
+
+/** Konfigurasi yang diisi dari halaman Penyimpanan (tanpa build ulang), kalau ada. */
+export function bacaOverrideSupabase(): OverrideSupabase | null {
+  try {
+    const mentah = localStorage.getItem(KUNCI_OVERRIDE)
+    if (!mentah) return null
+    const o = JSON.parse(mentah) as { url?: string; anonKey?: string }
+    if (!o?.url || !o?.anonKey) return null
+    return { url: String(o.url), anonKey: String(o.anonKey) }
+  } catch {
+    return null
+  }
+}
+
+/** Simpan (atau hapus dengan null) konfigurasi dari perangkat ini. */
+export function simpanOverrideSupabase(nilai: OverrideSupabase | null): void {
+  try {
+    if (!nilai) localStorage.removeItem(KUNCI_OVERRIDE)
+    else localStorage.setItem(KUNCI_OVERRIDE, JSON.stringify(nilai))
+  } catch {
+    /* localStorage bisa diblokir; abaikan */
+  }
+}
+
+/** Validasi nilai URL + anon key apa adanya (tanpa melihat konfigurasi tersimpan). */
+export function validasiKonfigurasi(urlMentah: string, anonKeyMentah: string): KonfigurasiSupabase {
+  const url = String(urlMentah ?? '').trim()
+  const anonKey = String(anonKeyMentah ?? '').trim()
 
   if (!url || !anonKey) {
     return {
@@ -55,7 +84,23 @@ export function bacaKonfigurasiSupabase(env = import.meta.env): KonfigurasiSupab
         'Ganti dengan anon public key.',
     }
   }
-  return { status: 'siap', url, anonKey, pesan: 'Konfigurasi Supabase terbaca.' }
+  return { status: 'siap', url, anonKey, pesan: 'Konfigurasi Supabase valid.' }
+}
+
+/** Cek konfigurasi efektif: isian dari halaman Penyimpanan lebih dulu, lalu env. */
+export function bacaKonfigurasiSupabase(env = import.meta.env): KonfigurasiSupabase {
+  const override = bacaOverrideSupabase()
+  const cek = validasiKonfigurasi(
+    override?.url ?? String(env[URL_KUNCI] ?? ''),
+    override?.anonKey ?? String(env[ANON_KUNCI] ?? ''),
+  )
+  if (cek.status !== 'siap') return cek
+  return {
+    ...cek,
+    pesan: override
+      ? 'Konfigurasi Supabase diisi dari perangkat ini (halaman Penyimpanan).'
+      : 'Konfigurasi Supabase terbaca dari variabel lingkungan (env).',
+  }
 }
 
 /** Pengguna memilih mode lokal dari tombol di banner. */

@@ -1,10 +1,14 @@
+import { useState } from 'react'
 import { useApp } from '../state/AppContext'
 import {
   bacaKonfigurasiSupabase,
+  bacaOverrideSupabase,
   paksaModeLokal,
+  simpanOverrideSupabase,
   sedangPaksaModeLokal,
+  validasiKonfigurasi,
 } from '../lib/storage'
-import { Kartu, Lencana, Tombol } from '../components/ui'
+import { Input, Kartu, Kolom, Lencana, Tombol } from '../components/ui'
 import schemaSql from '../../supabase/schema.sql?raw'
 
 function Langkah({ n, judul, children }: { n: number; judul: string; children: React.ReactNode }) {
@@ -25,6 +29,32 @@ export default function Supabase() {
   const { info, galatMuat, muatUlang, memuat, pesan, snapshot } = useApp()
   const cfg = bacaKonfigurasiSupabase()
   const dipaksa = sedangPaksaModeLokal()
+  const override = bacaOverrideSupabase()
+  const [url, setUrl] = useState(override?.url ?? '')
+  const [anonKey, setAnonKey] = useState(override?.anonKey ?? '')
+  const [galatSambung, setGalatSambung] = useState<string | null>(null)
+
+  const hubungkan = () => {
+    const cek = validasiKonfigurasi(url, anonKey)
+    if (cek.status !== 'siap') {
+      setGalatSambung(cek.pesan)
+      return
+    }
+    setGalatSambung(null)
+    simpanOverrideSupabase({ url: url.trim(), anonKey: anonKey.trim() })
+    paksaModeLokal(false)
+    pesan('Konfigurasi disimpan. Memuat ulang data dari Supabase…', 'sukses')
+    window.setTimeout(() => window.location.reload(), 600)
+  }
+
+  const lepas = () => {
+    simpanOverrideSupabase(null)
+    setUrl('')
+    setAnonKey('')
+    setGalatSambung(null)
+    pesan('Konfigurasi Supabase di perangkat ini dilepas.', 'info')
+    window.setTimeout(() => window.location.reload(), 600)
+  }
 
   const salinSql = async () => {
     try {
@@ -90,6 +120,52 @@ export default function Supabase() {
             </Tombol>
           )}
         </div>
+      </Kartu>
+
+      <Kartu className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-ink-soft">Hubungkan langsung dari sini</h2>
+          {override && <Lencana warna="hijau">diisi dari perangkat ini</Lencana>}
+        </div>
+        <p className="text-sm text-ink-soft">
+          Tempel <b>Project URL</b> dan <b>anon public key</b> dari Supabase Dashboard → Project
+          Settings → API. Tersimpan di browser ini, jadi tidak perlu build ulang. Kunci{' '}
+          <b>service_role</b> akan ditolak.
+        </p>
+        <Kolom label="Project URL">
+          <Input
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://xxxxxxxxxxxx.supabase.co"
+            spellCheck={false}
+            autoComplete="off"
+          />
+        </Kolom>
+        <Kolom label="Anon public key">
+          <Input
+            value={anonKey}
+            onChange={(e) => setAnonKey(e.target.value)}
+            placeholder="eyJhbGciOiJIUzI1NiIs..."
+            spellCheck={false}
+            autoComplete="off"
+          />
+        </Kolom>
+        {galatSambung && <p className="text-sm text-rose-700">{galatSambung}</p>}
+        <div className="flex flex-wrap gap-2">
+          <Tombol onClick={hubungkan} disabled={!url.trim() || !anonKey.trim()}>
+            Hubungkan
+          </Tombol>
+          {override && (
+            <Tombol variasi="sekunder" onClick={lepas}>
+              Lepas konfigurasi perangkat ini
+            </Tombol>
+          )}
+        </div>
+        <p className="text-xs text-ink-muted">
+          Kalau ingin semua orang yang membuka aplikasi langsung online, isi juga{' '}
+          <code>VITE_SUPABASE_URL</code> dan <code>VITE_SUPABASE_ANON_KEY</code> di environment
+          variable Vercel (langkah 4 di bawah).
+        </p>
       </Kartu>
 
       <Kartu className="space-y-4">
