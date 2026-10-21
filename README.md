@@ -1,5 +1,8 @@
 # Pingpong Club Manager (MVP)
 
+**Live:** https://pingpong1234.vercel.app · **Repo:** https://github.com/Azzam-AI2/pingpong1234
+_(setiap push ke `main` otomatis deploy ulang ke Vercel)_
+
 Aplikasi web untuk mengelola klub tenis meja: anggota, turnamen **Knockout** (sistem gugur) dan
 **Americano** (rotasi pasangan dengan poin individu), plus leaderboard lintas turnamen.
 
