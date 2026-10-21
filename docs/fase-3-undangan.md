@@ -84,6 +84,12 @@ Dashboard → **Authentication → URL Configuration**:
 Email undangan memakai pengirim bawaan Supabase (sesuai keputusan). Kuota gratis
 ±2–4 email/jam, jadi uji dengan email sendiri dulu.
 
+### Nama fungsi berbeda (mis. dashboard memberi nama acak)
+
+Klien mencoba nama berurutan: `VITE_EDGE_UNDANG` (kalau diisi) → `invite-member` →
+`bright-function`, lalu mengingat nama yang berhasil. Kalau nanti fungsi diganti nama,
+cukup tambahkan env build `VITE_EDGE_UNDANG=<nama-baru>` di Vercel dan `.env`, tanpa ubah kode.
+
 ## 4. Uji
 
 Ambil JWT pengguna (dari aplikasi: DevTools → Application → Local Storage → kunci

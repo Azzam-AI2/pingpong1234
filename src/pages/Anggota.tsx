@@ -17,6 +17,7 @@ import { bersihkanAksi } from '../lib/router'
 import { anggotaAktif, saringAnggota, type StatusAnggota, type UrutAnggota } from '../lib/anggota'
 import type { Gender, Member } from '../lib/types'
 import { formatTanggal, validasiNama } from '../lib/utils'
+import { KelolaUndangan } from '../components/KelolaUndangan'
 
 interface FormAnggota {
   id?: string
@@ -164,6 +165,8 @@ export default function Anggota({ aksi }: { aksi?: string }) {
         </div>
         <Tombol onClick={bukaTambah}>+ Tambah anggota</Tombol>
       </section>
+
+      <KelolaUndangan klubId={klubAktif?.id} />
 
       {semua.length > 0 && (
         <section className="flex flex-col gap-2 sm:flex-row">
