@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { validateGames } from '../knockout'
 import { validasiSkorLiga } from '../liga'
-import { validasiSkorAmericano } from '../americano'
+import { generateSchedule, validasiSkorAmericano } from '../americano'
 import { profilOlahraga, pemenangPertandingan } from '../sports'
 
 /**
@@ -85,6 +85,35 @@ describe('americano: target poin mengikuti konfigurasi kompetisi', () => {
   it('menolak skor negatif dan bukan bilangan bulat', () => {
     expect(validasiSkorAmericano(-1, 5, 15)).toContain('negatif')
     expect(validasiSkorAmericano(10.5, 5, 15)).toContain('bilangan bulat')
+  })
+})
+
+describe('americano padel: rotasi pasangan', () => {
+  it('8 pemain, 2 ronde: tiap meja 2v2 dan tidak ada pemain dobel dalam satu ronde', () => {
+    const pemain = Array.from({ length: 8 }, (_, i) => `p${i}`)
+    const plans = generateSchedule(pemain, 2)
+    expect(plans.length).toBe(2)
+
+    for (const ronde of plans) {
+      const semua = ronde.tables.flatMap((meja) => [...meja.teamA, ...meja.teamB])
+      expect(semua.length).toBe(semua.length)
+      expect(new Set(semua).size).toBe(semua.length) // tidak ada pemain dobel
+      expect(semua.length).toBe(8) // semua pemain bermain
+      for (const meja of ronde.tables) {
+        expect(meja.teamA.length).toBe(2)
+        expect(meja.teamB.length).toBe(2)
+      }
+      expect(ronde.resting.length).toBe(0)
+    }
+  })
+
+  it('5 pemain: satu orang istirahat tiap ronde, tidak ada pemain dobel', () => {
+    const pemain = Array.from({ length: 5 }, (_, i) => `p${i}`)
+    for (const ronde of generateSchedule(pemain, 3)) {
+      const semua = ronde.tables.flatMap((meja) => [...meja.teamA, ...meja.teamB])
+      expect(new Set(semua).size).toBe(semua.length)
+      expect(semua.length + ronde.resting.length).toBe(5)
+    }
   })
 })
 

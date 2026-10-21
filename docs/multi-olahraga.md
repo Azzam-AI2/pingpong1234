@@ -35,12 +35,12 @@ dipisah dari UI dan database.
 
 ## 3. Tahap berikutnya (belum dikerjakan)
 
-| Tahap | Isi | Berkas utama |
+| Tahap | Isi | Status |
 |---|---|---|
-| 3 | Input skor **bulu tangkis** (21/deuce/30) di modal pertandingan & klasemen liga bulu tangkis | `KnockoutView.tsx`, `LigaView.tsx`, `lib/knockout.ts`, `lib/liga.ts` (delegasi ke `sports.ts`) |
-| 4 | Input skor **padel tennis** (per set, 6/7 game, tiebreak) + tampilan set | `KnockoutView.tsx`, `lib/sports.ts` (sudah siap) |
-| 5 | **Americano padel**: rotasi pasangan 4 pemain/meja, tanpa pemain ganda dalam satu ronde, klasemen individu | `lib/americano.ts` (dipakai ulang), `AmericanoView.tsx` |
-| 6 | Konfigurasi kompetisi tersimpan (`club_sport_settings.settings` + `tournaments.settings`), validasi RPC, RLS | `sql/019_*`, `AppContext.tsx` |
+| 3 | Input skor **bulu tangkis** (21/deuce/30) di modal pertandingan & klasemen liga | ✅ selesai (commit `84a1649`) |
+| 4 | Input skor **padel tennis** per set + label "Set 1/2/3" di modal & "Jumlah set" saat buat turnamen | ✅ selesai (commit `ceb8668`) |
+| 5 | **Americano padel**: rotasi 2v2 per meja, larangan pemain dobel per ronde, target poin dari konfigurasi kompetisi | ✅ mesin + validasi teruji; UI Americano memakai komponen yang sama |
+| 6 | Simpan konfigurasi kompetisi (`tournaments.settings`: target/tiebreak/goldenPoint) + validasi pemenang di server (RPC) saat RLS diketatkan | ⏳ belum |
 
 ### Catatan skema untuk tahap 6
 
