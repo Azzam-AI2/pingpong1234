@@ -113,6 +113,51 @@ export function formatDidukung(slug: string | null | undefined, format: Tourname
   return formatTersedia(slug).includes(format)
 }
 
+/** Pengaturan yang boleh diatur penyelenggara untuk satu kompetisi. */
+export interface PengaturanKompetisi {
+  tiebreak?: boolean
+  goldenPoint?: boolean
+  target?: number
+  batasMaks?: number
+}
+
+/**
+ * Gabungkan aturan default cabang dengan pengaturan kompetisi.
+ * Hanya kunci yang relevan untuk jenis aturan tersebut yang dipakai,
+ * sehingga isian lama/asing tidak mengubah perilaku.
+ */
+export function aturanDariSettings(
+  slug: string | null | undefined,
+  format: TournamentType,
+  settings?: Record<string, unknown> | PengaturanKompetisi | null,
+): AturanSkor {
+  const dasar = profilOlahraga(slug).aturan(format)
+  const s = (settings ?? {}) as PengaturanKompetisi
+
+  if (dasar.jenis === 'set') {
+    return {
+      ...dasar,
+      tiebreak: typeof s.tiebreak === 'boolean' ? s.tiebreak : dasar.tiebreak,
+      goldenPoint: typeof s.goldenPoint === 'boolean' ? s.goldenPoint : dasar.goldenPoint,
+    }
+  }
+
+  const target = Number(s.target)
+  if (Number.isFinite(target) && target > 0) {
+    return { ...dasar, target }
+  }
+  return dasar
+}
+
+/** Knob mana yang perlu ditampilkan di form kompetisi. */
+export function pengaturanTersedia(aturan: AturanSkor) {
+  return {
+    tiebreak: aturan.jenis === 'set',
+    goldenPoint: aturan.jenis === 'set',
+    target: aturan.jenis !== 'set',
+  }
+}
+
 // ------------------------------------------------------------------ mesin skor
 
 /** Pemenang satu game/set, atau null kalau belum sah selesai. */

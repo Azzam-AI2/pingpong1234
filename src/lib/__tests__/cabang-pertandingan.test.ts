@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { validateGames } from '../knockout'
 import { validasiSkorLiga } from '../liga'
 import { generateSchedule, validasiSkorAmericano } from '../americano'
-import { profilOlahraga, pemenangPertandingan } from '../sports'
+import { profilOlahraga, pemenangPertandingan, aturanDariSettings, validasiGame } from '../sports'
 
 /**
  * Regresi lintas cabang: memastikan jalur pertandingan (knockout & liga) memakai
@@ -114,6 +114,37 @@ describe('americano padel: rotasi pasangan', () => {
       expect(new Set(semua).size).toBe(semua.length)
       expect(semua.length + ronde.resting.length).toBe(5)
     }
+  })
+})
+
+describe('konfigurasi aturan per kompetisi (settings)', () => {
+  it('default cabang dipakai kalau settings kosong', () => {
+    expect(aturanDariSettings('padel', 'knockout', null)).toMatchObject({
+      jenis: 'set',
+      tiebreak: true,
+      goldenPoint: false,
+    })
+    expect(aturanDariSettings('padel', 'americano', null)).toMatchObject({ jenis: 'americano', target: 16 })
+    expect(aturanDariSettings('table_tennis', 'knockout', null)).toMatchObject({ jenis: 'poin', target: 11 })
+  })
+
+  it('settings menimpa default (tiebreak & golden point)', () => {
+    const ubah = aturanDariSettings('padel', 'knockout', { tiebreak: false, goldenPoint: true })
+    expect(ubah).toMatchObject({ tiebreak: false, goldenPoint: true })
+    expect(validasiGame(ubah, 7, 6)).toContain('tiebreak')
+  })
+
+  it('target americano mengikuti settings', () => {
+    expect(aturanDariSettings('padel', 'americano', { target: 15 })).toMatchObject({ target: 15 })
+    expect(aturanDariSettings('badminton', 'liga', { target: 21 })).toMatchObject({ target: 21 })
+  })
+
+  it('kunci yang tidak relevan diabaikan (klub pingpong aman)', () => {
+    expect(aturanDariSettings('table_tennis', 'knockout', { tiebreak: false, goldenPoint: true })).toMatchObject({
+      jenis: 'poin',
+      target: 11,
+      selisihMin: 1,
+    })
   })
 })
 

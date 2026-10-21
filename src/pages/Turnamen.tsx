@@ -20,6 +20,8 @@ interface FormTurnamen {
   target_points: TargetPoints
   match_duration_min: string
   rounds_planned: string
+  /** Khusus knockout padel: opsi aturan set. */
+  settings?: { tiebreak?: boolean; goldenPoint?: boolean }
 }
 
 const FORM_AWAL: FormTurnamen = {
@@ -143,7 +145,16 @@ export default function Turnamen({
       type: form.type,
       format: form.type === 'americano' ? null : form.format,
       best_of: form.type === 'knockout' ? form.best_of : null,
-      target_points: form.type === 'americano' ? form.target_points : form.type === 'liga' ? 11 : null,
+      target_points:
+        form.type === 'americano'
+          ? form.target_points
+          : form.type === 'liga'
+            ? (() => {
+                const a = profilOlahraga(klubAktif?.sport_slug).aturan('liga')
+                return a.jenis === 'poin' ? (a.target as TargetPoints) : 11
+              })()
+            : null,
+      settings: form.type === 'knockout' ? (form.settings ?? null) : null,
       match_duration_min: form.type === 'americano' ? durasi : null,
       date_end: form.type === 'liga' ? form.date_end : null,
       rounds_planned: form.type === 'liga' ? ronde : null,
@@ -374,6 +385,46 @@ export default function Turnamen({
                 onPilih={(v) => setForm({ ...form, best_of: v })}
               />
             </Kolom>
+            {profilOlahraga(klubAktif?.sport_slug).aturan('knockout').jenis === 'set' && (
+              <>
+                <Kolom
+                  label="Tiebreak 7-6"
+                  petunjuk="Kalau nonaktif, set harus selesai dengan selisih 2 game."
+                >
+                  <Segmen
+                    nilai={form.settings?.tiebreak === false ? 'tidak' : 'ya'}
+                    opsi={[
+                      { nilai: 'ya', label: 'Aktif' },
+                      { nilai: 'tidak', label: 'Nonaktif' },
+                    ]}
+                    onPilih={(v) =>
+                      setForm({
+                        ...form,
+                        settings: { ...(form.settings ?? {}), tiebreak: v === 'ya' },
+                      })
+                    }
+                  />
+                </Kolom>
+                <Kolom
+                  label="Golden point"
+                  petunjuk="Satu poin penentu saat deuce (40-40), tanpa advantage."
+                >
+                  <Segmen
+                    nilai={form.settings?.goldenPoint ? 'ya' : 'tidak'}
+                    opsi={[
+                      { nilai: 'ya', label: 'Aktif' },
+                      { nilai: 'tidak', label: 'Nonaktif' },
+                    ]}
+                    onPilih={(v) =>
+                      setForm({
+                        ...form,
+                        settings: { ...(form.settings ?? {}), goldenPoint: v === 'ya' },
+                      })
+                    }
+                  />
+                </Kolom>
+              </>
+            )}
           </>
         ) : form.type === 'americano' ? (
           <>

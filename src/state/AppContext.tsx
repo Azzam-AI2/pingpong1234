@@ -32,7 +32,7 @@ import {
   validasiSkorLiga,
 } from '../lib/liga'
 import { drawBracket, pemenangTurnamen, recompute, validateGames } from '../lib/knockout'
-import { profilOlahraga } from '../lib/sports'
+import { aturanDariSettings } from '../lib/sports'
 import { hitungStatistikKlub, type StatAnggota } from '../lib/stats'
 import { uid } from '../lib/utils'
 
@@ -58,6 +58,7 @@ export interface PayloadTurnamen {
   format: Tournament['format']
   best_of: Tournament['best_of']
   target_points: Tournament['target_points']
+  settings?: Record<string, unknown> | null
   match_duration_min: number | null
   date_end: string | null
   rounds_planned: number | null
@@ -404,6 +405,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         created_at: new Date().toISOString(),
         date_end: d.date_end,
         rounds_planned: d.rounds_planned,
+        settings: d.settings ?? {},
       }
       return jalankan([{ table: 'tournaments', type: 'insert', row }], `Turnamen "${nama}" dibuat.`)
     },
@@ -491,7 +493,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const simpanHasil = useCallback<AppContextValue['simpanHasil']>(
     async (t, matchId, games) => {
       const bestOf = t.best_of ?? 3
-      const aturan = profilOlahraga(snapshot.clubs.find((c) => c.id === t.club_id)?.sport_slug).aturan('knockout')
+      const aturan = aturanDariSettings(
+        snapshot.clubs.find((c) => c.id === t.club_id)?.sport_slug,
+        t.type,
+        t.settings,
+      )
       const cek = validateGames(games, bestOf, aturan)
       if (!cek.ok) {
         pesanRef.current(cek.error ?? 'Skor tidak valid.', 'error')
@@ -595,7 +601,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       if (skorA !== null && skorB !== null) {
         // Target poin mengikuti konfigurasi kompetisi (mis. padel 15/16, pingpong 21).
-        const target = t.target_points ?? 21
+        const aturanAmer = aturanDariSettings(
+          snapshot.clubs.find((c) => c.id === t.club_id)?.sport_slug,
+          'americano',
+          t.settings,
+        )
+        const target = aturanAmer.jenis === 'americano' ? aturanAmer.target : (t.target_points ?? 21)
         const salah = validasiSkorAmericano(skorA, skorB, target)
         if (salah) {
           pesanRef.current(salah, 'error')
@@ -711,7 +722,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return false
       }
       if (skorA !== null && skorB !== null) {
-        const aturan = profilOlahraga(snapshot.clubs.find((c) => c.id === t.club_id)?.sport_slug).aturan('liga')
+        const aturan = aturanDariSettings(
+          snapshot.clubs.find((c) => c.id === t.club_id)?.sport_slug,
+          t.type,
+          t.settings,
+        )
         const cek = validasiSkorLiga(skorA, skorB, t.target_points ?? POIN_MAKS_LIGA, aturan)
         if (!cek.ok) {
           pesanRef.current(cek.error ?? 'Skor tidak valid.', 'error')

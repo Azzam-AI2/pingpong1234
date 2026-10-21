@@ -45,6 +45,8 @@ export interface Tournament {
   date_end: string | null
   /** Khusus Liga: jumlah ronde yang direncanakan (null = semua peserta bertemu sekali). */
   rounds_planned: number | null
+  /** Konfigurasi aturan kompetisi (target poin, tiebreak, golden point). */
+  settings?: Record<string, unknown> | null
 }
 
 /** Peserta turnamen. Single = 1 anggota, Double = 2 anggota. */

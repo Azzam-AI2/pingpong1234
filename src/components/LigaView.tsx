@@ -29,11 +29,15 @@ interface Skor {
 }
 
 /** Mode Liga: semua peserta saling bertemu, juara = total poin tertinggi. */
-import { profilOlahraga } from '../lib/sports'
+import { aturanDariSettings } from '../lib/sports'
 
 export function LigaView({ turnamen }: { turnamen: Tournament }) {
   const { snapshot, buatJadwalLiga, simpanSkorLiga, sibuk } = useApp()
-  const aturanSkor = profilOlahraga(snapshot.clubs.find((c) => c.id === turnamen.club_id)?.sport_slug).aturan('liga')
+  const aturanSkor = aturanDariSettings(
+    snapshot.clubs.find((c) => c.id === turnamen.club_id)?.sport_slug,
+    turnamen.type,
+    turnamen.settings,
+  )
   const format = turnamen.format ?? 'single'
   const target =
     turnamen.target_points ?? (aturanSkor.jenis === 'poin' ? aturanSkor.target : POIN_MAKS_LIGA)

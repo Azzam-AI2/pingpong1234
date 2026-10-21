@@ -129,11 +129,15 @@ function KartuBagan({
   )
 }
 
-import { profilOlahraga } from '../lib/sports'
+import { aturanDariSettings } from '../lib/sports'
 
 export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
   const { snapshot, mulaiKnockout, simpanHasil, hapusHasil, sibuk } = useApp()
-  const aturanSkor = profilOlahraga(snapshot.clubs.find((c) => c.id === turnamen.club_id)?.sport_slug).aturan('knockout')
+  const aturanSkor = aturanDariSettings(
+    snapshot.clubs.find((c) => c.id === turnamen.club_id)?.sport_slug,
+    turnamen.type,
+    turnamen.settings,
+  )
   const pakaiSet = aturanSkor.jenis === 'set'
   const satuan = pakaiSet ? 'set' : 'game'
   const Satuan = pakaiSet ? 'Set' : 'Game'
