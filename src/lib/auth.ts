@@ -39,8 +39,16 @@ export function pesanGalatAuth(pesan: string): string {
   if (p.includes('user already registered') || p.includes('already been registered'))
     return 'Email ini sudah punya akun. Minta pemilik klub mengundang lewat email tersebut.'
   if (p.includes('password should be at least')) return 'Sandi terlalu pendek (minimal 6 karakter).'
-  if (p.includes('rate limit') || p.includes('too many'))
-    return 'Terlalu banyak percobaan. Tunggu beberapa menit lalu coba lagi.'
+  if (p.includes('email rate limit') || p.includes('over_email_send_rate_limit')) {
+    return (
+      'Kuota kirim email Supabase habis (paket gratis hanya ±2–4 email/jam). ' +
+      'Pilihan: tunggu ±1 jam, matikan "Confirm email" di Supabase Auth, atau pasang SMTP sendiri. ' +
+      'Kalau penerima sudah punya akun, undangan tetap bisa lewat menu Anggota → Undang anggota.'
+    )
+  }
+  if (p.includes('rate limit') || p.includes('too many')) {
+    return 'Terlalu banyak percobaan masuk/daftar dari jaringan ini. Tunggu beberapa menit lalu coba lagi.'
+  }
   if (p.includes('unable to validate email') || p.includes('invalid email'))
     return 'Format email tidak valid.'
   if (p.includes('session missing') || p.includes('session not found') || p.includes('jwt expired'))
