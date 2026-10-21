@@ -357,7 +357,14 @@ export default function Turnamen({
                 onPilih={(v) => setForm({ ...form, format: v })}
               />
             </Kolom>
-            <Kolom label="Best of" wajib>
+            <Kolom
+              label={
+                profilOlahraga(klubAktif?.sport_slug).aturan('knockout').jenis === 'set'
+                  ? 'Jumlah set (best of)'
+                  : 'Best of'
+              }
+              wajib
+            >
               <Segmen<BestOf>
                 nilai={form.best_of}
                 opsi={[

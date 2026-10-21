@@ -85,7 +85,7 @@ export function validateGames(
     }
     const g = games[i]
     const salah = validasiGame(aturan, g.a, g.b)
-    if (salah) return { ok: false, error: `Game ${i + 1}: ${salah}` }
+    if (salah) return { ok: false, error: `${aturan.jenis === 'set' ? 'Set' : 'Game'} ${i + 1}: ${salah}` }
     const p = pemenangGame(aturan, g.a, g.b)
     if (p === 'a') a++
     else if (p === 'b') b++

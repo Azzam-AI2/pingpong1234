@@ -134,6 +134,9 @@ import { profilOlahraga } from '../lib/sports'
 export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
   const { snapshot, mulaiKnockout, simpanHasil, hapusHasil, sibuk } = useApp()
   const aturanSkor = profilOlahraga(snapshot.clubs.find((c) => c.id === turnamen.club_id)?.sport_slug).aturan('knockout')
+  const pakaiSet = aturanSkor.jenis === 'set'
+  const satuan = pakaiSet ? 'set' : 'game'
+  const Satuan = pakaiSet ? 'Set' : 'Game'
   const bestOf = turnamen.best_of ?? 3
   const butuhMenang = gamesToWin(bestOf)
 
@@ -469,17 +472,23 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
                 <span className="truncate text-right">{namaPeserta(matchObj.participant_b)}</span>
               </div>
               <p className="text-center text-xs text-ink-muted">
-                Best of {bestOf} · butuh {butuhMenang} game kemenangan
+                Best of {bestOf} · butuh {butuhMenang} {satuan} kemenangan
               </p>
               <p className="text-center text-xs text-brand-800">
-                Setiap game mengikuti aturan cabang klub: pingpong sampai 11 poin (tanpa deuce), bulu tangkis sampai 21 poin (unggul 2, maksimal 30).
+                {aturanSkor.jenis === 'set'
+                  ? `Setiap set sampai ${aturanSkor.gamePerSet} game (selisih ${aturanSkor.selisihMin}); ${aturanSkor.tiebreak ? `tiebreak sampai ${aturanSkor.maksGame} game` : 'tanpa tiebreak'}${aturanSkor.goldenPoint ? ', golden point saat deuce' : ''}.`
+                  : aturanSkor.jenis === 'poin'
+                    ? aturanSkor.selisihMin === 1
+                      ? `Setiap game sampai ${aturanSkor.target} poin, tanpa deuce.`
+                      : `Setiap game sampai ${aturanSkor.target} poin; pada ${aturanSkor.target}-${aturanSkor.target} harus unggul ${aturanSkor.selisihMin}${aturanSkor.batasMaks ? `, maksimal ${aturanSkor.batasMaks}` : ''}.`
+                    : `Setiap pertandingan maksimal ${aturanSkor.target} poin.`}
               </p>
             </div>
 
             <div className="space-y-2">
               {skor.map((g, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <span className="w-14 text-xs text-ink-muted">Game {i + 1}</span>
+                  <span className="w-14 text-xs text-ink-muted">{Satuan} {i + 1}</span>
                   <Input
                     inputMode="numeric"
                     className="w-20 text-center"

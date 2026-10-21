@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { validateGames } from '../knockout'
 import { validasiSkorLiga } from '../liga'
-import { profilOlahraga } from '../sports'
+import { profilOlahraga, pemenangPertandingan } from '../sports'
 
 /**
  * Regresi lintas cabang: memastikan jalur pertandingan (knockout & liga) memakai
@@ -39,6 +39,37 @@ describe('knockout memakai aturan cabang', () => {
   it('tanpa argumen aturan, perilaku bawaan tetap tenis meja', () => {
     expect(validateGames([{ a: 11, b: 9 }, { a: 11, b: 7 }], 3).ok).toBe(true)
     expect(validateGames([{ a: 21, b: 19 }], 3).ok).toBe(false)
+  })
+})
+
+describe('padel knockout memakai aturan set', () => {
+  const aturanPadel = profilOlahraga('padel').aturan('knockout')
+
+  it('dua set 6-4 dan 6-3 sudah cukup untuk menang', () => {
+    const games = [{ a: 6, b: 4 }, { a: 6, b: 3 }]
+    expect(validateGames(games, 3, aturanPadel).ok).toBe(true)
+    expect(pemenangPertandingan(aturanPadel, games, 3)).toBe('a')
+  })
+
+  it('pesan galat menyebut "Set", bukan "Game"', () => {
+    const cek = validateGames([{ a: 6, b: 5 }], 3, aturanPadel)
+    expect(cek.ok).toBe(false)
+    expect(cek.error).toContain('Set 1')
+    expect(cek.error).not.toContain('Game 1')
+  })
+
+  it('7-6 (tiebreak) dan 7-5 sah, 8-6 ditolak', () => {
+    expect(validateGames([{ a: 7, b: 6 }, { a: 6, b: 4 }], 3, aturanPadel).ok).toBe(true)
+    expect(validateGames([{ a: 7, b: 5 }, { a: 6, b: 4 }], 3, aturanPadel).ok).toBe(true)
+    const cek = validateGames([{ a: 8, b: 6 }, { a: 6, b: 4 }], 3, aturanPadel)
+    expect(cek.ok).toBe(false)
+    expect(cek.error).toContain('maksimal 7')
+  })
+
+  it('kalah dua set: pemenang sisi b, bukan a', () => {
+    const games = [{ a: 4, b: 6 }, { a: 3, b: 6 }]
+    expect(validateGames(games, 3, aturanPadel).ok).toBe(true)
+    expect(pemenangPertandingan(aturanPadel, games, 3)).toBe('b')
   })
 })
 
