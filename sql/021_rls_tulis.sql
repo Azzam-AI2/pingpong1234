@@ -14,9 +14,27 @@ grant insert, update, delete on public.clubs, public.members, public.tournaments
   public.americano_matches, public.league_rounds, public.league_matches
 to authenticated;
 
+-- ---------------------------------------------------------------- helper: role pemanggil
+-- SECURITY DEFINER supaya tidak memicu rekursi RLS saat dipakai di policy
+-- club_members sendiri.
+create or replace function public.role_saya_di_klub(p_club uuid)
+returns text
+language sql stable security definer
+set search_path = public, pg_temp
+as $$
+  select cm.role
+  from public.club_members cm
+  where cm.club_id = p_club
+    and cm.user_id = auth.uid()
+    and cm.status = 'active'
+  limit 1
+$$;
+
+revoke all on function public.role_saya_di_klub(uuid) from public, anon;
+grant execute on function public.role_saya_di_klub(uuid) to authenticated;
+
 -- ---------------------------------------------------------------- profil
 alter table public.profiles enable row level security;
-
 drop policy if exists profil_baca_sendiri on public.profiles;
 create policy profil_baca_sendiri on public.profiles
   for select to authenticated
@@ -71,11 +89,17 @@ create policy anggota_klub_ubah on public.club_members
   for update to authenticated
   using (
     public.has_perm(club_id, 'club.manage_members')
-    or (user_id = auth.uid() and status in ('active', 'left'))
+    or user_id = auth.uid()
   )
   with check (
     public.has_perm(club_id, 'club.manage_members')
-    or (user_id = auth.uid() and status in ('active', 'left'))
+    or (
+      -- anggota boleh mengubah barisnya sendiri, tetapi TIDAK boleh menaikkan role.
+      user_id = auth.uid()
+      and status in ('active', 'left')
+      and public.role_saya_di_klub(club_id) is not null
+      and role = public.role_saya_di_klub(club_id)
+    )
   );
 
 drop policy if exists anggota_klub_hapus on public.club_members;
