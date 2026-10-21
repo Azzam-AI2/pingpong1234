@@ -27,6 +27,7 @@ import { generateSchedule, suggestRounds } from '../lib/americano'
 import {
   buatJadwalLiga as susunJadwalLiga,
   ligaSelesai,
+  POIN_MAKS_LIGA,
   rondePenuhLiga,
   validasiSkorLiga,
 } from '../lib/liga'
@@ -683,7 +684,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         return false
       }
       if (skorA !== null && skorB !== null) {
-        const cek = validasiSkorLiga(skorA, skorB, t.target_points ?? 21)
+        const cek = validasiSkorLiga(skorA, skorB, t.target_points ?? POIN_MAKS_LIGA)
         if (!cek.ok) {
           pesanRef.current(cek.error ?? 'Skor tidak valid.', 'error')
           return false

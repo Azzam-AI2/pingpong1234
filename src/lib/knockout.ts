@@ -40,7 +40,14 @@ export interface ValidasiGame {
   error?: string
 }
 
-/** Validasi urutan skor game untuk format best of 3 / 5. */
+/** Batas skor satu game tenis meja: dimainkan sampai 11 poin. */
+export const POIN_MAKS_GAME = 11
+
+/**
+ * Validasi urutan skor game untuk format best of 3 / 5.
+ * Setiap game dimainkan sampai 11 poin: pemenang game harus mencapai 11
+ * dan tidak ada skor yang melebihi 11 (tanpa deuce).
+ */
 export function validateGames(games: Game[], bestOf: number): ValidasiGame {
   const need = gamesToWin(bestOf)
   if (!games.length) return { ok: false, error: 'Minimal satu game harus diisi.' }
@@ -55,8 +62,19 @@ export function validateGames(games: Game[], bestOf: number): ValidasiGame {
       return { ok: false, error: `Skor game ${i + 1} harus bilangan bulat.` }
     }
     if (g.a < 0 || g.b < 0) return { ok: false, error: `Skor tidak boleh negatif (game ${i + 1}).` }
-    if (g.a > 99 || g.b > 99) return { ok: false, error: `Skor maksimal 99 (game ${i + 1}).` }
+    if (g.a > POIN_MAKS_GAME || g.b > POIN_MAKS_GAME) {
+      return {
+        ok: false,
+        error: `Skor maksimal ${POIN_MAKS_GAME} poin per game (game ${i + 1}).`,
+      }
+    }
     if (g.a === g.b) return { ok: false, error: `Game ${i + 1} tidak boleh seri.` }
+    if (Math.max(g.a, g.b) !== POIN_MAKS_GAME) {
+      return {
+        ok: false,
+        error: `Pemenang game ${i + 1} harus mencapai ${POIN_MAKS_GAME} poin (mis. 11-9).`,
+      }
+    }
     if (a >= need || b >= need) {
       return { ok: false, error: `Pertandingan sudah selesai di game ${i}; hapus game ${i + 1}.` }
     }

@@ -100,20 +100,21 @@ describe('jadwal liga round-robin', () => {
   })
 })
 
-describe('validasi skor liga (aturan deuce)', () => {
+describe('validasi skor liga (sampai 11 poin per pertandingan)', () => {
   it('menerima skor sah', () => {
-    expect(validasiSkorLiga(21, 15, 21).ok).toBe(true)
-    expect(validasiSkorLiga(15, 21, 21).ok).toBe(true)
-    expect(validasiSkorLiga(22, 20, 21).ok).toBe(true) // deuce
     expect(validasiSkorLiga(11, 9, 11).ok).toBe(true)
+    expect(validasiSkorLiga(9, 11, 11).ok).toBe(true)
+    expect(validasiSkorLiga(11, 10, 11).ok).toBe(true)
+    expect(validasiSkorLiga(11, 0, 11).ok).toBe(true)
   })
 
-  it('menolak skor yang belum mencapai target, selisih 1, seri, dan negatif', () => {
-    expect(validasiSkorLiga(11, 5, 21).ok).toBe(false) // belum 21
-    expect(validasiSkorLiga(22, 21, 21).ok).toBe(false) // selisih 1
-    expect(validasiSkorLiga(21, 21, 21).ok).toBe(false) // seri
-    expect(validasiSkorLiga(-1, 21, 21).ok).toBe(false)
-    expect(validasiSkorLiga(120, 15, 21).ok).toBe(false)
+  it('menolak skor lebih dari 11, deuce, seri, dan negatif', () => {
+    expect(validasiSkorLiga(12, 10, 11).ok).toBe(false) // melewati batas 11
+    expect(validasiSkorLiga(13, 11, 11).ok).toBe(false)
+    expect(validasiSkorLiga(21, 15, 11).ok).toBe(false) // target lain tidak dipakai lagi
+    expect(validasiSkorLiga(9, 7, 11).ok).toBe(false) // pemenang belum 11
+    expect(validasiSkorLiga(11, 11, 11).ok).toBe(false) // seri
+    expect(validasiSkorLiga(-1, 11, 11).ok).toBe(false)
   })
 })
 

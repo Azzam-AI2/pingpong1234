@@ -18,6 +18,7 @@ import {
   juaraLiga,
   ligaSelesai,
   rondePenuhLiga,
+  POIN_MAKS_LIGA,
   validasiSkorLiga,
 } from '../lib/liga'
 import { cls } from '../lib/utils'
@@ -31,7 +32,7 @@ interface Skor {
 export function LigaView({ turnamen }: { turnamen: Tournament }) {
   const { snapshot, buatJadwalLiga, simpanSkorLiga, sibuk } = useApp()
   const format = turnamen.format ?? 'single'
-  const target = turnamen.target_points ?? 21
+  const target = turnamen.target_points ?? POIN_MAKS_LIGA
 
   const anggota = useMemo(
     () =>
@@ -203,7 +204,8 @@ export function LigaView({ turnamen }: { turnamen: Tournament }) {
               {format === 'double'
                 ? 'Pasangan tetap selama liga. Satu anggota hanya boleh masuk satu pasangan.'
                 : 'Setiap peserta akan bertemu peserta lain.'}{' '}
-              Target poin {target} per pertandingan; poin yang dicetak dijumlahkan sepanjang liga.
+              Setiap pertandingan dimainkan sampai {target} poin (maksimal {target}); skor yang
+              dicetak dijumlahkan sepanjang liga.
             </p>
           </div>
 

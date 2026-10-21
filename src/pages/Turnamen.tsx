@@ -142,7 +142,7 @@ export default function Turnamen({
       type: form.type,
       format: form.type === 'americano' ? null : form.format,
       best_of: form.type === 'knockout' ? form.best_of : null,
-      target_points: form.type === 'knockout' ? null : form.target_points,
+      target_points: form.type === 'americano' ? form.target_points : form.type === 'liga' ? 11 : null,
       match_duration_min: form.type === 'americano' ? durasi : null,
       date_end: form.type === 'liga' ? form.date_end : null,
       rounds_planned: form.type === 'liga' ? ronde : null,
@@ -408,18 +408,10 @@ export default function Turnamen({
                 onPilih={(v) => setForm({ ...form, format: v })}
               />
             </Kolom>
-            <Kolom label="Target poin per pertandingan" wajib>
-              <Segmen<TargetPoints>
-                nilai={form.target_points}
-                opsi={[
-                  { nilai: 11, label: '11' },
-                  { nilai: 15, label: '15' },
-                  { nilai: 21, label: '21' },
-                  { nilai: 24, label: '24' },
-                ]}
-                onPilih={(v) => setForm({ ...form, target_points: v })}
-              />
-            </Kolom>
+            <p className="rounded-xl border border-white/10 bg-white/5 p-2.5 text-xs text-slate-300">
+              Skor tiap pertandingan liga dimainkan sampai <b>11 poin</b> (mis. 11-9, 11-10, 5-11);
+              tidak ada pilihan target lain. Poin yang dicetak dijumlahkan sepanjang liga.
+            </p>
             <Kolom
               label="Jumlah ronde"
               petunjuk="Kosongkan = semua peserta bertemu sekali (jumlah ronde dihitung otomatis)."

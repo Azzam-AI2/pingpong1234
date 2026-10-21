@@ -186,8 +186,18 @@ describe('validasi skor', () => {
   it('menerima skor sah best of 3', () => {
     expect(validateGames([{ a: 11, b: 5 }, { a: 11, b: 9 }], 3).ok).toBe(true)
     expect(
-      validateGames([{ a: 11, b: 13 }, { a: 11, b: 9 }, { a: 12, b: 10 }], 3).ok,
+      validateGames([{ a: 11, b: 9 }, { a: 8, b: 11 }, { a: 11, b: 0 }], 3).ok,
     ).toBe(true)
+  })
+
+  it('mewajibkan setiap game sampai 11 poin, tanpa deuce', () => {
+    // pemenang game harus tepat 11 poin
+    expect(validateGames([{ a: 12, b: 10 }, { a: 11, b: 9 }], 3).ok).toBe(false)
+    expect(validateGames([{ a: 13, b: 11 }, { a: 11, b: 9 }], 3).ok).toBe(false)
+    expect(validateGames([{ a: 9, b: 7 }], 3).ok).toBe(false)
+    // 11-10 tetap sah (batas 11 poin per game)
+    expect(validateGames([{ a: 11, b: 10 }, { a: 11, b: 10 }], 3).ok).toBe(true)
+    expect(validateGames([{ a: 5, b: 11 }, { a: 11, b: 4 }, { a: 11, b: 6 }], 3).ok).toBe(true)
   })
 
   it('menolak seri, negatif, dan game berlebih', () => {

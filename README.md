@@ -40,12 +40,16 @@ otomatis sambil menekan pengulangan pasangan/lawan, target poin 11/15/21/24, dur
 (memunculkan timer per ronde), skor per meja, klasemen individu (poin = jumlah poin yang dicetak tim),
 peringkat + jumlah pertandingan + total poin, juara individu dengan animasi.
 
-**Liga**: format Single (pemain) atau Double (pasangan tetap), rentang tanggal mulai–selesai, target poin
-11/15/21/24, jadwal round-robin otomatis (semua peserta saling bertemu sekali, peserta ganjil istirahat
-bergiliran, bisa dibatasi jumlah rondenya), skor per pertandingan dengan aturan deuce (unggul ≥2 poin),
-klasemen peringkat dari **total poin** lalu rata-rata poin lalu jumlah kemenangan, ringkasan statistik
-individu untuk Double (tanpa menghitung poin ganda), juara + animasi. Detail aturan & keputusan teknis di
-[`docs/mode-liga.md`](docs/mode-liga.md).
+**Liga**: format Single (pemain) atau Double (pasangan tetap), rentang tanggal mulai–selesai, jadwal
+round-robin otomatis (semua peserta saling bertemu sekali, peserta ganjil istirahat bergiliran, bisa
+dibatasi jumlah rondenya), skor per pertandingan, klasemen peringkat dari **total poin** lalu rata-rata
+poin lalu jumlah kemenangan, ringkasan statistik individu untuk Double (tanpa menghitung poin ganda),
+juara + animasi. Detail aturan & keputusan teknis di [`docs/mode-liga.md`](docs/mode-liga.md).
+
+**Aturan poin per game (Liga & Knockout)**: setiap game/pertandingan dimainkan **sampai 11 poin** —
+pemenang harus mencapai 11 dan skor tidak boleh lebih dari 11 (tanpa deuce; 11-10, 11-9, 11-0, 5-11
+sah; 12-10 atau 13-11 ditolak). Liga tidak lagi punya pilihan target 15/21/24. Americano tetap memakai
+target 11/15/21/24 karena poinnya dijumlahkan, bukan per game.
 
 Aturan penting: **poin Americano tidak pernah dihitung sebagai kemenangan Knockout**, dan poin Liga berdiri
 sendiri di dalam liga (tidak masuk klasemen klub).
@@ -129,7 +133,7 @@ src/
     types.ts        tipe data (nama field = nama kolom Supabase)
     knockout.ts     murni: undi bracket, bye, validasi skor, hitung ulang pemenang
     americano.ts    murni: jadwal rotasi pasangan, klasemen individu
-    liga.ts         murni: jadwal round-robin, validasi skor target poin, klasemen liga
+    liga.ts         murni: jadwal round-robin, validasi skor 11 poin, klasemen liga
     stats.ts        murni: statistik pemain, juara, ringkasan beranda
     storage/        backend penyimpanan: local.ts (localStorage), supabase.ts, mirror.ts
     router.ts       router hash berjenjang (klub sebagai hierarki tertinggi)
@@ -158,12 +162,15 @@ npm test
 skor lama diubah, validasi Best of 3/5 (seri, skor negatif, game berlebih), jadwal rotasi Americano
 (8 pemain / 7 ronde = 28 pasangan unik, pembagian istirahat adil), klasemen individu, dan statistik klub.
 
-Total saat ini **34 test di 5 berkas**, termasuk: jadwal liga round-robin (4 & 5 peserta: setiap pasangan
+Total saat ini **35 test di 5 berkas**, termasuk: jadwal liga round-robin (4 & 5 peserta: setiap pasangan
 bertemu sekali, istirahat adil saat ganjil, batas ronde tanpa mengulang lawan), validasi skor liga
-(deuce, target poin, seri), klasemen liga tanpa hitung ganda saat skor diedit/dibatalkan, dan regresi
-pemangkasan data (match liga tidak boleh ikut terbuang saat ronde dihapus).
+(sampai 11 poin per pertandingan, seri, nilai di luar batas), aturan 11 poin per game Knockout,
+klasemen liga tanpa hitung ganda saat skor diedit/dibatalkan, dan regresi pemangkasan data (match liga
+tidak boleh ikut terbuang saat ronde dihapus). Alur liga juga sudah diuji di browser: skor 12-10 ditolak
+("Skor sisi pertama maksimal 11 poin per pertandingan."), skor 11-10 diterima, dan modal skor Knockout
+menolak 12-10 ("Skor maksimal 11 poin per game") lalu menerima 11-9 + 11-5 → juara ditetapkan.
 
-Alur utama juga sudah diuji langsung di browser (mode lokal): buat klub & 6 anggota → turnamen Knockout
+Alur utama lain juga sudah diuji langsung di browser (mode lokal): buat klub & 6 anggota → turnamen Knockout
 6 peserta (2 bye) → 5 pertandingan diisi skor → juara otomatis + status Selesai → turnamen Americano
 6 pemain 6 ronde → 6 skor diisi → juara individu (Fajar 84 poin) → turnamen **Liga** 4 pemain 3 ronde
 (6 pertandingan, setiap pasangan bertemu sekali) → semua skor diisi → klasemen dihitung ulang dari data

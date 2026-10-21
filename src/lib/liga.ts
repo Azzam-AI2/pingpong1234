@@ -21,36 +21,34 @@ export interface ValidasiSkorLiga {
   error?: string
 }
 
+/** Batas poin satu pertandingan liga: dimainkan sampai 11 poin. */
+export const POIN_MAKS_LIGA = 11
+
 /**
- * Validasi skor liga: pemenang harus mencapai target poin dan unggul minimal 2
- * (aturan deuce tenis meja). Skor harus bilangan bulat 0-99 dan tidak boleh seri.
+ * Validasi skor liga: setiap pertandingan dimainkan sampai 11 poin.
+ * Pemenang harus mencapai 11 dan skor tidak boleh melebihi 11 (tanpa deuce).
  */
 export function validasiSkorLiga(
   skorA: number,
   skorB: number,
-  targetPoin: number,
+  targetPoin: number = POIN_MAKS_LIGA,
 ): ValidasiSkorLiga {
+  const batas = Math.min(targetPoin, POIN_MAKS_LIGA)
   for (const [nama, s] of [
     ['Skor sisi pertama', skorA],
     ['Skor sisi kedua', skorB],
   ] as const) {
     if (!Number.isInteger(s)) return { ok: false, error: `${nama} harus bilangan bulat.` }
     if (s < 0) return { ok: false, error: `${nama} tidak boleh negatif.` }
-    if (s > 99) return { ok: false, error: `${nama} maksimal 99.` }
-  }
-  if (skorA === skorB) return { ok: false, error: 'Skor tidak boleh seri.' }
-  const tinggi = Math.max(skorA, skorB)
-  const rendah = Math.min(skorA, skorB)
-  if (tinggi < targetPoin) {
-    return {
-      ok: false,
-      error: `Belum ada pemenang: minimal ${targetPoin} poin untuk menang (tertinggi ${tinggi}).`,
+    if (s > batas) {
+      return { ok: false, error: `${nama} maksimal ${batas} poin per pertandingan.` }
     }
   }
-  if (tinggi - rendah < 2) {
+  if (skorA === skorB) return { ok: false, error: 'Skor tidak boleh seri.' }
+  if (Math.max(skorA, skorB) !== batas) {
     return {
       ok: false,
-      error: `Selisih skor minimal 2 saat melewati ${targetPoin} poin (aturan deuce).`,
+      error: `Pemenang harus mencapai ${batas} poin (mis. 11-9, 11-10, atau 5-11).`,
     }
   }
   return { ok: true }

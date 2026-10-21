@@ -399,6 +399,9 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
               <p className="text-center text-xs text-slate-400">
                 Best of {bestOf} · butuh {butuhMenang} game kemenangan
               </p>
+              <p className="text-center text-xs text-brand-200">
+                Setiap game dimainkan sampai 11 poin (mis. 11-9, 11-10, 5-11).
+              </p>
             </div>
 
             <div className="space-y-2">

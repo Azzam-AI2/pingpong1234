@@ -123,7 +123,7 @@ export default function TurnamenDetail({
       patch.date_end = modalEdit.date_end
       if (!adaJadwal) {
         patch.format = modalEdit.format
-        patch.target_points = modalEdit.target_points
+        patch.target_points = 11
         patch.rounds_planned = ronde
       }
     }
@@ -377,18 +377,9 @@ export default function TurnamenDetail({
                 onPilih={(v) => modalEdit && setModalEdit({ ...modalEdit, format: v })}
               />
             </Kolom>
-            <Kolom label="Target poin" wajib>
-              <Segmen<TargetPoints>
-                nilai={modalEdit?.target_points ?? 21}
-                opsi={[
-                  { nilai: 11, label: '11' },
-                  { nilai: 15, label: '15' },
-                  { nilai: 21, label: '21' },
-                  { nilai: 24, label: '24' },
-                ]}
-                onPilih={(v) => modalEdit && setModalEdit({ ...modalEdit, target_points: v })}
-              />
-            </Kolom>
+            <p className="rounded-xl border border-white/10 bg-white/5 p-2.5 text-xs text-slate-300">
+              Skor liga tetap dimainkan sampai <b>11 poin</b> per pertandingan.
+            </p>
             <Kolom
               label="Jumlah ronde"
               petunjuk="Kosongkan = semua peserta bertemu sekali."

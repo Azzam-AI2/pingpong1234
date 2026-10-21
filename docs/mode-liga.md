@@ -93,8 +93,8 @@ sudah ada.
   ulang** dari data match tersimpan sehingga mengedit atau membatalkan skor tidak pernah menggandakan
   poin. Peringkat utama di level peserta (pasangan untuk Double); ringkasan pemain bersifat tambahan
   dan tidak menambah poin klasemen.
-- `validasiSkorLiga(skorA, skorB, targetPoin)` — pemenang wajib mencapai target poin dan unggul ≥ 2
-  (aturan deuce), skor 0–99 bilangan bulat, tidak boleh seri.
+- `validasiSkorLiga(skorA, skorB, targetPoin = 11)` — setiap pertandingan dimainkan **sampai 11 poin**:
+  pemenang harus mencapai 11, skor tidak boleh melebihi 11, bilangan bulat, tidak boleh seri.
 
 **Database (Supabase)** — tabel terpisah, tidak menyentuh tabel Knockout/Americano:
 
@@ -108,8 +108,10 @@ sudah ada.
 
 **Keputusan yang diambil** (bisa diubah kalau pemilik produk mau beda):
 
-1. **Deuce**: pemenang wajib mencapai target poin dan unggul minimal 2 (mis. 21–19 sah, 21–20 dan
-   22–21 ditolak, 22–20 sah). Ini mengikuti aturan tenis meja.
+1. **Batas 11 poin per pertandingan** (arahan pemilik produk): pemenang harus mencapai 11 poin dan
+   skor tidak boleh lebih dari 11 — tanpa deuce. Jadi 11-10, 11-9, 11-0, dan 5-11 sah, sedangkan 12-10
+   atau 13-11 ditolak. Pilihan target 15/21/24 dihapus dari Liga (Knockout mengikuti aturan yang sama,
+   Americano tetap 11/15/21/24 karena poinnya dijumlahkan).
 2. **Peserta ganjil**: satu peserta istirahat tiap ronde, diputar merata oleh metode lingkaran.
 3. **Satu putaran** (semua peserta bertemu sekali) dengan opsi batas jumlah ronde; belum ada mode
    "bertemu dua kali".
