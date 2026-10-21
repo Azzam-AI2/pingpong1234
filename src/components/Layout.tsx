@@ -60,7 +60,7 @@ export function Layout({
   klubId?: string
   children: ReactNode
 }) {
-  const { info, galatMuat } = useApp()
+  const { info, galatMuat, muatUlang, memuat } = useApp()
   const didalamKlub = Boolean(klubId)
 
   return (
@@ -121,12 +121,29 @@ export function Layout({
                 <p className="font-semibold">Gagal memuat data dari Supabase</p>
                 <p className="mt-1 text-rose-700/90">{galatMuat}</p>
                 <p className="mt-1 text-xs text-rose-700/80">
-                  Data yang kamu lihat berasal dari sesi ini saja. Periksa koneksi/kunci, lalu muat ulang.{' '}
+                  Data yang kamu lihat berasal dari sesi ini saja. Periksa koneksi, lalu coba lagi.{' '}
                   <a href={keHash({ halaman: 'penyimpanan' })} className="underline">
                     Lihat panduan integrasi
                   </a>
                   .
                 </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void muatUlang()}
+                    disabled={memuat}
+                    className="rounded-lg border border-rose-600/40 bg-surface px-3 py-1.5 text-xs font-medium text-rose-700 transition-colors hover:bg-rose-500/10"
+                  >
+                    {memuat ? 'Mencoba…' : 'Coba lagi'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => window.location.reload()}
+                    className="rounded-lg px-3 py-1.5 text-xs font-medium text-rose-700/80 underline transition-colors hover:text-rose-700"
+                  >
+                    Muat ulang halaman
+                  </button>
+                </div>
               </>
             ) : (
               <>

@@ -144,7 +144,7 @@ export class SupabaseBackend {
           return [t, data ?? []] as const
         }),
       ),
-      12000,
+      25000,
       'memuat data dari Supabase',
     )
     const snap: Snapshot = { ...EMPTY_SNAPSHOT }
