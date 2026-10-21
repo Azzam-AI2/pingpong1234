@@ -6,15 +6,35 @@ import { Petunjuk } from '../components/Panduan'
 import { bersihkanAksi, keHash, type Target } from '../lib/router'
 import { formatTanggal } from '../lib/utils'
 import { pemenangTurnamen } from '../lib/knockout'
+import { DaftarUndangan } from './Undangan'
+import { bisaAturKlub, klubSaya, labelPeran, modeOnline } from '../lib/auth'
 
 /**
  * Halaman awal aplikasi: daftar klub sebagai hierarki tertinggi.
  * Semua data (anggota, turnamen, leaderboard) berada di dalam klub.
  */
 export default function PilihKlub({ aksi, pindah }: { aksi?: string; pindah: (t: Target) => void }) {
-  const { snapshot, hapusKlub, klubTerakhir } = useApp()
+  const { snapshot, hapusKlub, klubTerakhir, muatUlang } = useApp()
   const [form, setForm] = useState<DataKlubForm | null>(null)
   const [konfirmasi, setKonfirmasi] = useState<string | null>(null)
+  const [peran, setPeran] = useState<Record<string, string>>({})
+  const daring = modeOnline()
+
+  // Peran dibaca dari database (RPC my_clubs), bukan dari tampilan, supaya
+  // tombol yang muncul mengikuti izin yang benar-benar dimiliki pengguna.
+  useEffect(() => {
+    if (!daring) return
+    let hidup = true
+    void klubSaya().then((rows) => {
+      if (hidup) setPeran(Object.fromEntries(rows.map((r) => [r.club_id, r.role])))
+    })
+    return () => {
+      hidup = false
+    }
+  }, [daring])
+
+  const bolehAtur = (clubId: string) => !daring || bisaAturKlub(peran[clubId] ?? '')
+  const bolehBuatKlub = !daring || Object.values(peran).some((r) => bisaAturKlub(r))
 
   useEffect(() => {
     if (aksi === 'baru-klub') {
@@ -35,12 +55,12 @@ export default function PilihKlub({ aksi, pindah }: { aksi?: string; pindah: (t:
             Pilih klub untuk membuka anggota, turnamen, dan leaderboard-nya.
           </p>
         </div>
-        <Tombol
-          onClick={() => setForm({ name: '', logo_url: null })}
-        >
-          + Klub baru
-        </Tombol>
+        {bolehBuatKlub && (
+          <Tombol onClick={() => setForm({ name: '', logo_url: null })}>+ Klub baru</Tombol>
+        )}
       </div>
+
+      {daring && <DaftarUndangan onBerubah={() => void muatUlang()} />}
 
       {snapshot.clubs.length === 0 ? (
         <>
@@ -89,6 +109,9 @@ export default function PilihKlub({ aksi, pindah }: { aksi?: string; pindah: (t:
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="truncate font-semibold text-ink">{c.name}</p>
+                      {daring && peran[c.id] && (
+                        <Lencana warna="hijau">{labelPeran(peran[c.id])}</Lencana>
+                      )}
                       {c.id === klubTerakhir?.id && <Lencana warna="biru">terakhir dibuka</Lencana>}
                     </div>
                     <p className="text-xs text-ink-muted">
@@ -108,16 +131,20 @@ export default function PilihKlub({ aksi, pindah }: { aksi?: string; pindah: (t:
                   <a href={keHash({ halaman: 'beranda', klubId: c.id })}>
                     <Tombol kecil>Masuk klub</Tombol>
                   </a>
-                  <Tombol
-                    kecil
-                    variasi="sekunder"
-                    onClick={() => setForm({ id: c.id, name: c.name, logo_url: c.logo_url })}
-                  >
-                    Edit
-                  </Tombol>
-                  <Tombol kecil variasi="bahaya" onClick={() => setKonfirmasi(c.id)}>
-                    Hapus
-                  </Tombol>
+                  {bolehAtur(c.id) && (
+                    <>
+                      <Tombol
+                        kecil
+                        variasi="sekunder"
+                        onClick={() => setForm({ id: c.id, name: c.name, logo_url: c.logo_url })}
+                      >
+                        Edit
+                      </Tombol>
+                      <Tombol kecil variasi="bahaya" onClick={() => setKonfirmasi(c.id)}>
+                        Hapus
+                      </Tombol>
+                    </>
+                  )}
                 </div>
               </Kartu>
             )

@@ -10,6 +10,11 @@ import Turnamen from './pages/Turnamen'
 import TurnamenDetail from './pages/TurnamenDetail'
 import Leaderboard from './pages/Leaderboard'
 import Supabase from './pages/Supabase'
+import Undangan from './pages/Undangan'
+import Masuk from './pages/Masuk'
+import AturSandi from './pages/AturSandi'
+import { modeOnline } from './lib/auth'
+import { useSesi } from './lib/useSesi'
 
 function Isi() {
   const [rute, pindah] = pakaiRute()
@@ -20,6 +25,9 @@ function Isi() {
     if (rute.klubId) pilihKlub(rute.klubId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rute.klubId])
+
+  // Layar penetapan sandi dari tautan undangan — tidak butuh data klub.
+  if (rute.halaman === 'atur-sandi') return <AturSandi />
 
   if (!siap) {
     return (
@@ -54,6 +62,7 @@ function Isi() {
     <Layout halaman={rute.halaman} klubId={rute.klubId}>
       {rute.halaman === 'pilih-klub' && <PilihKlub aksi={rute.aksi} pindah={pindah} />}
       {rute.halaman === 'penyimpanan' && <Supabase />}
+      {rute.halaman === 'undangan' && <Undangan />}
       {rute.halaman === 'beranda' && <Dashboard pindah={pindah} />}
       {rute.halaman === 'anggota' && <Anggota aksi={rute.aksi} />}
       {rute.halaman === 'turnamen' && <Turnamen pindah={pindah} aksi={rute.aksi} />}
@@ -69,8 +78,23 @@ function Isi() {
 }
 
 export default function App() {
+  const { sesi, memuat } = useSesi()
+  const wajibMasuk = modeOnline()
+
+  // Tunggu sesi diketahui supaya data tidak sempat dimuat sebagai anonim.
+  if (wajibMasuk && memuat) {
+    return (
+      <div className="mx-auto flex min-h-screen max-w-md items-center justify-center px-4">
+        <div className="h-24 w-full animate-pulse rounded-2xl bg-ink/6" />
+      </div>
+    )
+  }
+
+  // Mode lokal (Supabase tidak dikonfigurasi) tetap bisa dipakai tanpa akun.
+  if (wajibMasuk && !sesi) return <Masuk />
+
   return (
-    <AppProvider>
+    <AppProvider key={sesi?.user.id ?? 'lokal'}>
       <Isi />
       <ToastHost />
     </AppProvider>

@@ -89,15 +89,39 @@ export function sedangPaksaModeLokal(): boolean {
   }
 }
 
+/**
+ * Satu instance klien untuk seluruh aplikasi (data + auth).
+ *
+ * Penting: kalau data memakai klien berbeda dari auth, permintaan PostgREST
+ * tidak membawa token sesi sehingga RLS akan menganggapnya anonim.
+ */
+let klienBersama: { url: string; kunci: string; klien: SupabaseClient } | null = null
+
+export function ambilKlien(url: string, anonKey: string): SupabaseClient {
+  if (!klienBersama || klienBersama.url !== url || klienBersama.kunci !== anonKey) {
+    klienBersama = {
+      url,
+      kunci: anonKey,
+      klien: createClient(url, anonKey, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          storageKey: 'pcm.auth',
+        },
+      }),
+    }
+  }
+  return klienBersama.klien
+}
+
 /** Penyimpanan online melalui Supabase (REST). */
 export class SupabaseBackend {
   readonly kind = 'supabase' as const
   private client: SupabaseClient
 
   constructor(url: string, anonKey: string) {
-    this.client = createClient(url, anonKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    })
+    this.client = ambilKlien(url, anonKey)
   }
 
   private cek(error: { message: string } | null, aksi: string) {

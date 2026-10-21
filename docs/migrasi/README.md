@@ -55,11 +55,12 @@ Urutan impor: `clubs → members → tournaments → participants → knockout_m
 | 2 | `sql/010_core_platform.sql` | `profiles, sports, club_members, club_invitations, club_sport_settings, audit_logs, platform_admins`; kolom `clubs.slug/description/status/created_by/updated_at`, `members.user_id`, `created_by/updated_at` domain; lepas CHECK khusus tenis meja; trigger `updated_at` | **Tidak ada** |
 | 3 | `sql/011_helpers.sql` | `role_has_perm, has_perm, is_club_member, my_clubs, is_platform_admin` | **Tidak ada** |
 | 4 | `sql/014_organisasi.sql` | `organizations, organization_members`, `clubs.organization_id`, `tournaments.sport_id`, `audit_logs.organization_id`; helper naik level (`has_perm` cek klub **atau** organisasi; `my_clubs` + kolom `via`; `my_organizations`; `is_org_member`; `is_org_owner`) | **Tidak ada** |
-| 5 | *(manual)* | Dashboard → **Authentication → Users → Add user** (email + password, centang *Auto Confirm User*) | — |
-| 6 | `sql/012_bootstrap_owner.sql` | Buat organisasi + klub pertama (kalau kosong) + profil + `owner` klub + `org_owner` + `platform_admin` + setelan tenis meja. **Ganti email/nama di bagian deklarasi** | Klub muncul lagi (data baru) |
-| 7 | `sql/013_buat_klub.sql` | **Opsional** — tambah klub cabang lain di organisasi yang sama (contoh: badminton). **Ganti nama/slug/cabang/email** | Klub baru muncul |
+| 5 | `sql/015_undangan_rpc.sql` | Trigger profil otomatis untuk akun baru + backfill, RPC `undangan_saya` / `terima_undangan` / `tolak_undangan` | **Tidak ada** |
+| 6 | *(manual)* | Dashboard → **Authentication → Users → Add user** (email + password, centang *Auto Confirm User*) | — |
+| 7 | `sql/012_bootstrap_owner.sql` | Buat organisasi + klub pertama (kalau kosong) + profil + `owner` klub + `org_owner` + `platform_admin` + setelan tenis meja. **Ganti email/nama di bagian deklarasi** | Klub muncul lagi (data baru) |
+| 8 | `sql/013_buat_klub.sql` | **Opsional** — tambah klub cabang lain di organisasi yang sama (contoh: badminton). **Ganti nama/slug/cabang/email** | Klub baru muncul |
 
-Setelah langkah 1–7, aplikasi versi sekarang masih berjalan seperti biasa (policy tabel domain belum diubah).
+Setelah langkah 1–8, aplikasi versi sekarang masih berjalan seperti biasa (policy tabel domain belum diubah).
 RLS ketat baru masuk di **fase 4** (`020_*`, `021_*`), bersamaan dengan rilis klien yang sudah punya login.
 
 > `clubs.organization_id` sengaja **belum NOT NULL**: aplikasi versi sekarang belum mengirim kolom itu saat

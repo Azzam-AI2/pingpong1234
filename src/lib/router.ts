@@ -20,6 +20,8 @@ export type NamaHalaman =
   | 'turnamen'
   | 'detail'
   | 'leaderboard'
+  | 'undangan'
+  | 'atur-sandi'
   | 'penyimpanan'
 
 export interface Rute {
@@ -45,6 +47,14 @@ function parse(hash: string): Rute {
 
   if (bagian[0] === 'penyimpanan' || bagian[0] === 'supabase') {
     return { halaman: 'penyimpanan', aksi }
+  }
+
+  if (bagian[0] === 'undangan') {
+    return { halaman: 'undangan', aksi }
+  }
+
+  if (bagian[0] === 'atur-sandi') {
+    return { halaman: 'atur-sandi', aksi }
   }
 
   if (bagian[0] === 'klub' && bagian[1]) {
@@ -73,6 +83,10 @@ export function keHash(target: Target): string {
   switch (target.halaman) {
     case 'penyimpanan':
       return `#/penyimpanan${q}`
+    case 'undangan':
+      return `#/undangan${q}`
+    case 'atur-sandi':
+      return `#/atur-sandi${q}`
     case 'pilih-klub':
       return `#/${q}`
     case 'beranda':

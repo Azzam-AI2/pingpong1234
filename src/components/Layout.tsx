@@ -3,6 +3,8 @@ import { useApp } from '../state/AppContext'
 import { cls } from '../lib/utils'
 import { keHash, type NamaHalaman } from '../lib/router'
 import { Lencana } from './ui'
+import { keluar } from '../lib/auth'
+import { useEmailSesi } from '../lib/useSesi'
 
 interface ItemMenu {
   halaman: NamaHalaman
@@ -42,6 +44,8 @@ const BAGIAN: Record<NamaHalaman, string> = {
   turnamen: 'Turnamen',
   detail: 'Turnamen',
   leaderboard: 'Peringkat',
+  undangan: 'Undangan',
+  'atur-sandi': 'Atur sandi',
   penyimpanan: 'Penyimpanan',
 }
 
@@ -61,6 +65,7 @@ export function Layout({
   children: ReactNode
 }) {
   const { info, galatMuat, muatUlang, memuat } = useApp()
+  const email = useEmailSesi()
   const didalamKlub = Boolean(klubId)
 
   return (
@@ -79,11 +84,31 @@ export function Layout({
             </span>
           </a>
 
-          <a href={keHash({ halaman: 'penyimpanan' })} className="shrink-0">
-            <Lencana warna={info.mode === 'supabase' ? 'hijau' : 'kuning'}>
-              {info.mode === 'supabase' ? '● Online' : '● Lokal'}
-            </Lencana>
-          </a>
+          <div className="flex shrink-0 items-center gap-1.5">
+            {email && (
+              <a
+                href={keHash({ halaman: 'undangan' })}
+                className="rounded-lg px-2 py-1 text-xs font-medium text-ink-soft transition-colors hover:bg-ink/10"
+              >
+                Undangan
+              </a>
+            )}
+            <a href={keHash({ halaman: 'penyimpanan' })}>
+              <Lencana warna={info.mode === 'supabase' ? 'hijau' : 'kuning'}>
+                {info.mode === 'supabase' ? '● Online' : '● Lokal'}
+              </Lencana>
+            </a>
+            {email && (
+              <button
+                type="button"
+                onClick={() => void keluar()}
+                title={email}
+                className="max-w-[9rem] truncate rounded-lg px-2 py-1 text-xs font-medium text-ink-soft transition-colors hover:bg-ink/10"
+              >
+                Keluar
+              </button>
+            )}
+          </div>
         </div>
 
         {didalamKlub && klubId && (
