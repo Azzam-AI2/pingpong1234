@@ -13,7 +13,7 @@ interface ItemMenu {
 const MENU: ItemMenu[] = [
   {
     halaman: 'beranda',
-    label: 'Klub',
+    label: 'Beranda',
     jalur: 'M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6V11h-6v9Zm0-16v5h6V4h-6Z',
   },
   {
@@ -86,6 +86,25 @@ export function Layout({
             </Lencana>
           </a>
         </div>
+
+        {didalamKlub && klubId && (
+          <nav className="mx-auto hidden max-w-5xl gap-1 px-4 pb-2 sm:flex">
+            {MENU.map((m) => (
+              <a
+                key={m.halaman}
+                href={keHash({ halaman: m.halaman, klubId })}
+                className={cls(
+                  'rounded-xl px-3 py-1.5 text-sm font-medium transition-colors',
+                  aktifUntuk(halaman, m.halaman)
+                    ? 'bg-brand-600 text-white'
+                    : 'text-ink-soft hover:bg-ink/10',
+                )}
+              >
+                {m.label}
+              </a>
+            ))}
+          </nav>
+        )}
       </header>
 
       {(galatMuat || info.mode === 'local') && (
