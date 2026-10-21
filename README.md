@@ -20,7 +20,7 @@ masuk ke sebuah klub, semua menu bekerja di dalam klub itu.
 | --- | --- |
 | **Daftar klub** (`#/`) | Buat/edit/hapus klub, lihat ringkasan tiap klub (anggota, turnamen, juara terbaru), tombol **Masuk klub** |
 | **Beranda klub** (`#/klub/<id>`) | Header klub (logo, nama, tanggal dibuat) + tombol **Edit/Hapus klub**, lalu tiga kartu navigasi: **Anggota**, **Turnamen**, **Peringkat**. Panduan 3 langkah hanya muncul selama klub masih kosong |
-| **Anggota** (`#/klub/<id>/anggota`) | CRUD anggota (nama, jenis kelamin, foto) + peringatan saat menghapus anggota yang sudah dipakai turnamen |
+| **Anggota** (`#/klub/<id>/anggota`) | Daftar anggota satu kartu: pencarian nama, saring gender/status, urut nama/tanggal, baris berisi avatar + identitas + status **Aktif/Nonaktif**, aksi **Edit / Duplikat / Hapus** per baris, dan peringatan saat menghapus anggota yang sudah dipakai turnamen |
 | **Turnamen** (`#/klub/<id>/turnamen`) | Daftar + filter status, pembuatan **Knockout / Americano / Liga**, halaman detail turnamen |
 | **Leaderboard** (`#/klub/<id>/leaderboard`) | Statistik pemain klub: jumlah pertandingan, menang/kalah, win rate, gelar, riwayat — **terpisah** Knockout dan Americano |
 | **Penyimpanan** (`#/penyimpanan`) | Status mode data (lokal/online) + panduan integrasi Supabase |
@@ -39,6 +39,10 @@ juara tampil dengan animasi (konfeti + kartu juara).
 otomatis sambil menekan pengulangan pasangan/lawan, target poin 11/15/21/24, durasi pertandingan opsional
 (memunculkan timer per ronde), skor per meja, klasemen individu (poin = jumlah poin yang dicetak tim),
 peringkat + jumlah pertandingan + total poin, juara individu dengan animasi.
+
+**Anggota**: nama, jenis kelamin, foto opsional, dan status **aktif/nonaktif** (nonaktif = tidak ikut
+dihitung sebagai anggota aktif, tapi riwayatnya tetap tersimpan). Bisa dicari, disaring, diurutkan,
+diduplikat, dan dihapus dengan peringatan kalau sudah dipakai turnamen.
 
 **Liga**: format Single (pemain) atau Double (pasangan tetap), rentang tanggal mulai–selesai, jadwal
 round-robin otomatis (semua peserta saling bertemu sekali, peserta ganjil istirahat bergiliran, bisa
@@ -163,11 +167,12 @@ npm test
 skor lama diubah, validasi Best of 3/5 (seri, skor negatif, game berlebih), jadwal rotasi Americano
 (8 pemain / 7 ronde = 28 pasangan unik, pembagian istirahat adil), klasemen individu, dan statistik klub.
 
-Total saat ini **35 test di 5 berkas**, termasuk: jadwal liga round-robin (4 & 5 peserta: setiap pasangan
+Total saat ini **46 test di 7 berkas**, termasuk: jadwal liga round-robin (4 & 5 peserta: setiap pasangan
 bertemu sekali, istirahat adil saat ganjil, batas ronde tanpa mengulang lawan), validasi skor liga
 (sampai 11 poin per pertandingan, seri, nilai di luar batas), aturan 11 poin per game Knockout,
-klasemen liga tanpa hitung ganda saat skor diedit/dibatalkan, dan regresi pemangkasan data (match liga
-tidak boleh ikut terbuang saat ronde dihapus). Alur liga juga sudah diuji di browser: skor 12-10 ditolak
+klasemen liga tanpa hitung ganda saat skor diedit/dibatalkan, regresi pemangkasan data (match liga tidak
+boleh ikut terbuang saat ronde dihapus), penyaringan/penyortiran anggota (nama, gender, status, urutan), dan
+format tanggal 12 bulan (pernah ada bug 'Jul' hilang yang menggeser nama bulan). Alur liga juga sudah diuji di browser: skor 12-10 ditolak
 ("Skor sisi pertama maksimal 11 poin per pertandingan."), skor 11-10 diterima, dan modal skor Knockout
 menolak 12-10 ("Skor maksimal 11 poin per game") lalu menerima 11-9 + 11-5 → juara ditetapkan.
 

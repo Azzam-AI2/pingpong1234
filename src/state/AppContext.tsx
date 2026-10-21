@@ -86,6 +86,7 @@ interface AppContextValue {
     name: string
     photo_url: string | null
     gender: Gender
+    aktif?: boolean
   }) => Promise<boolean>
   hapusAnggota: (id: string) => Promise<boolean>
   pemakaianAnggota: (id: string) => Tournament[]
@@ -311,7 +312,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               table: 'members',
               type: 'update',
               id: d.id,
-              patch: { name: nama, photo_url: d.photo_url, gender: d.gender },
+              patch: { name: nama, photo_url: d.photo_url, gender: d.gender, aktif: d.aktif ?? true },
             },
           ],
           'Perubahan anggota disimpan.',
@@ -323,6 +324,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         name: nama,
         photo_url: d.photo_url,
         gender: d.gender,
+        aktif: d.aktif ?? true,
         created_at: new Date().toISOString(),
       }
       return jalankan([{ table: 'members', type: 'insert', row }], `Anggota ${nama} ditambahkan.`)

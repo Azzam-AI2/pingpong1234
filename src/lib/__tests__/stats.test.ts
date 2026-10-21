@@ -14,7 +14,7 @@ import type {
 const TGL = '2026-10-01'
 
 function member(id: string, nama: string, club = 'c1'): Member {
-  return { id, club_id: club, name: nama, photo_url: null, gender: 'L', created_at: TGL }
+  return { id, club_id: club, name: nama, photo_url: null, gender: 'L', aktif: true, created_at: TGL }
 }
 
 function turnamen(patch: Partial<Tournament> & { id: string; type: Tournament['type'] }): Tournament {

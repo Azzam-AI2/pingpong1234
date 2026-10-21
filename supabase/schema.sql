@@ -29,6 +29,7 @@ create table if not exists public.members (
   name text not null check (char_length(btrim(name)) between 1 and 60),
   photo_url text,
   gender text not null check (gender in ('L', 'P')),
+  aktif boolean not null default true,
   created_at timestamptz not null default now()
 );
 create index if not exists members_club_idx on public.members(club_id);
@@ -132,6 +133,7 @@ create index if not exists league_matches_tournament_idx on public.league_matche
 
 -- =============================================== migrasi untuk database lama
 -- Aman dijalankan ulang: hanya menambah kolom/constraint yang belum ada.
+alter table public.members add column if not exists aktif boolean not null default true;
 alter table public.tournaments add column if not exists date_end date;
 alter table public.tournaments add column if not exists rounds_planned integer;
 

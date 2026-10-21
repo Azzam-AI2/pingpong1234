@@ -24,7 +24,7 @@ export function shuffle<T>(arr: T[], rand: () => number = Math.random): T[] {
   return out
 }
 
-const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
 const BULAN_PANJANG = [
   'Januari',
   'Februari',
@@ -71,6 +71,12 @@ export function roundLabel(round: number, totalRounds: number): string {
   if (fromEnd === 3) return 'Babak 16 Besar'
   if (fromEnd === 4) return 'Babak 32 Besar'
   return `Ronde ${round}`
+}
+
+/** Huruf pertama nama untuk avatar bulat. */
+export function hurufAwal(nama: string): string {
+  const huruf = nama.trim().match(/[\p{L}\p{N}]/u)
+  return huruf ? huruf[0].toUpperCase() : '?'
 }
 
 export function inisial(nama: string): string {

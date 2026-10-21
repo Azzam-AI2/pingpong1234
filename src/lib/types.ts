@@ -22,6 +22,8 @@ export interface Member {
   name: string
   photo_url: string | null
   gender: Gender
+  /** Status keanggotaan: nonaktif = masih tersimpan (mis. sudah tidak ikut main). */
+  aktif: boolean
   created_at: string
 }
 

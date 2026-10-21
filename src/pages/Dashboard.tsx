@@ -1,75 +1,11 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useMemo, useState } from 'react'
 import { useApp } from '../state/AppContext'
 import { Konfirmasi } from '../components/ui'
+import { Ikon, type NamaIkon } from '../components/Ikon'
 import { ModalKlub, type DataKlubForm } from '../components/KlubForm'
 import { MulaiDariSini } from '../components/Panduan'
 import { keHash, type Target } from '../lib/router'
 import { formatTanggalPanjang } from '../lib/utils'
-
-const IKON: Record<string, ReactNode> = {
-  anggota: (
-    <>
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </>
-  ),
-  turnamen: (
-    <>
-      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
-      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
-      <path d="M4 22h16" />
-      <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
-      <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
-      <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
-    </>
-  ),
-  peringkat: (
-    <>
-      <rect x="3" y="12" width="4.5" height="9" rx="1.2" />
-      <rect x="9.75" y="3" width="4.5" height="18" rx="1.2" />
-      <rect x="16.5" y="8" width="4.5" height="13" rx="1.2" />
-    </>
-  ),
-  pensil: (
-    <>
-      <path d="M12 20h9" />
-      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-    </>
-  ),
-  sampah: (
-    <>
-      <path d="M3 6h18" />
-      <path d="M8 6V4h8v2" />
-      <path d="M19 6l-1 14H6L5 6" />
-      <path d="M10 11v6M14 11v6" />
-    </>
-  ),
-  panahKiri: (
-    <>
-      <path d="M19 12H5" />
-      <path d="M12 19l-7-7 7-7" />
-    </>
-  ),
-}
-
-function Ikon({ jalur, kelas = 'h-6 w-6' }: { jalur: ReactNode; kelas?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={kelas}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.8}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      {jalur}
-    </svg>
-  )
-}
 
 /** Satu kartu navigasi besar: ikon lalu judul lalu keterangan bertanda panah. */
 function KartuMenu({
@@ -79,7 +15,7 @@ function KartuMenu({
   keterangan,
 }: {
   href: string
-  ikon: ReactNode
+  ikon: NamaIkon
   judul: string
   keterangan: string
 }) {
@@ -89,7 +25,7 @@ function KartuMenu({
       className="group flex flex-col rounded-2xl border border-ink/12 bg-surface p-5 transition-colors hover:border-brand-600/40 hover:bg-brand-500/[0.04] sm:p-7"
     >
       <span className="text-brand-700">
-        <Ikon jalur={ikon} />
+        <Ikon nama={ikon} />
       </span>
       <span className="mt-5 text-lg font-bold tracking-tight text-ink sm:mt-6 sm:text-xl">
         {judul}
@@ -126,7 +62,7 @@ export function Dashboard({ pindah }: { pindah?: (t: Target) => void }) {
         href={keHash({ halaman: 'pilih-klub' })}
         className="inline-flex items-center gap-2 text-sm text-ink-muted transition-colors hover:text-ink"
       >
-        <Ikon jalur={IKON.panahKiri} kelas="h-4 w-4" />
+        <Ikon nama="panahKiri" kelas="h-4 w-4" />
         Semua klub
       </a>
 
@@ -160,7 +96,7 @@ export function Dashboard({ pindah }: { pindah?: (t: Target) => void }) {
             }
             className="inline-flex items-center gap-2 rounded-[10px] bg-surface-2 px-5 py-3 text-[15px] font-medium text-brand-700 transition-colors hover:bg-brand-500/20"
           >
-            <Ikon jalur={IKON.pensil} kelas="h-4 w-4" />
+            <Ikon nama="pensil" kelas="h-[18px] w-[18px]" />
             Edit
           </button>
           <button
@@ -168,7 +104,7 @@ export function Dashboard({ pindah }: { pindah?: (t: Target) => void }) {
             onClick={() => setKonfirmasiHapus(true)}
             className="inline-flex items-center gap-2 px-2 py-3 text-[15px] font-medium text-rose-700 transition-colors hover:text-rose-700/80"
           >
-            <Ikon jalur={IKON.sampah} kelas="h-4 w-4" />
+            <Ikon nama="sampah" kelas="h-[18px] w-[18px]" />
             Hapus
           </button>
         </div>
@@ -177,19 +113,19 @@ export function Dashboard({ pindah }: { pindah?: (t: Target) => void }) {
       <section className="grid gap-4 sm:grid-cols-3 sm:gap-6">
         <KartuMenu
           href={keHash({ halaman: 'anggota', klubId })}
-          ikon={IKON.anggota}
+          ikon="anggota"
           judul="Anggota"
           keterangan="Kelola direktori pemain →"
         />
         <KartuMenu
           href={keHash({ halaman: 'turnamen', klubId })}
-          ikon={IKON.turnamen}
+          ikon="turnamen"
           judul="Turnamen"
           keterangan="Knockout, liga & bagan →"
         />
         <KartuMenu
           href={keHash({ halaman: 'leaderboard', klubId })}
-          ikon={IKON.peringkat}
+          ikon="peringkat"
           judul="Peringkat"
           keterangan="Leaderboard & statistik pemain →"
         />

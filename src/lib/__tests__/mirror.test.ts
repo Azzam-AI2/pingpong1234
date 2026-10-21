@@ -86,6 +86,7 @@ describe('mirror snapshot', () => {
       name: 'X',
       photo_url: null,
       gender: 'L',
+    aktif: true,
       created_at: '2026-01-01',
     })
     const bersih = pangkasYatim(s)

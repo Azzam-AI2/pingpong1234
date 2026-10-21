@@ -6,7 +6,7 @@ import {
   type ChangeEvent,
   type ReactNode,
 } from 'react'
-import { cls, inisial } from '../lib/utils'
+import { cls, hurufAwal } from '../lib/utils'
 import { fileKeDataUrl } from '../lib/gambar'
 import { useApp } from '../state/AppContext'
 
@@ -206,6 +206,24 @@ export function Lencana({
   )
 }
 
+const WARNA_AVATAR = [
+  'bg-rose-500/15 text-rose-700',
+  'bg-accent-500/20 text-accent-900',
+  'bg-emerald-500/20 text-emerald-800',
+  'bg-brand-500/20 text-brand-800',
+  'bg-sky-500/20 text-sky-700',
+  'bg-violet-500/20 text-violet-700',
+  'bg-amber-500/25 text-amber-800',
+  'bg-teal-500/20 text-teal-700',
+]
+
+/** Warna avatar stabil per nama supaya tiap pemain punya warna sendiri. */
+function warnaAvatar(nama: string): string {
+  let h = 0
+  for (const c of nama) h = (h * 31 + c.charCodeAt(0)) % 9973
+  return WARNA_AVATAR[h % WARNA_AVATAR.length]
+}
+
 export function Avatar({ nama, src, ukuran = 40 }: { nama: string; src?: string | null; ukuran?: number }) {
   if (src) {
     return (
@@ -219,10 +237,13 @@ export function Avatar({ nama, src, ukuran = 40 }: { nama: string; src?: string 
   }
   return (
     <div
-      style={{ width: ukuran, height: ukuran, fontSize: Math.max(11, ukuran / 3) }}
-      className="flex items-center justify-center rounded-full bg-brand-600/30 font-semibold text-brand-800 ring-1 ring-ink/15"
+      style={{ width: ukuran, height: ukuran, fontSize: Math.max(12, ukuran / 2.4) }}
+      className={cls(
+        'flex items-center justify-center rounded-full font-semibold ring-1 ring-ink/10',
+        warnaAvatar(nama),
+      )}
     >
-      {inisial(nama)}
+      {hurufAwal(nama)}
     </div>
   )
 }
