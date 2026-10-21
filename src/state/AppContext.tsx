@@ -238,6 +238,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       snapshot.participants,
       snapshot.knockout_matches,
       snapshot.americano_matches,
+      snapshot.league_matches,
     )
   }, [snapshot, klubAktif])
 

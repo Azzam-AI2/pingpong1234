@@ -22,7 +22,7 @@ masuk ke sebuah klub, semua menu bekerja di dalam klub itu.
 | **Beranda klub** (`#/klub/<id>`) | Header klub (logo, nama, tanggal dibuat) + tombol **Edit/Hapus klub**, lalu **dashboard klub**: ringkasan angka, daftar turnamen berjalan dengan progres skor, juara terbaru, dan top pemain. Navigasi lewat menu Beranda/Anggota/Turnamen/Peringkat. Panduan 3 langkah hanya muncul selama klub masih kosong |
 | **Anggota** (`#/klub/<id>/anggota`) | Daftar anggota satu kartu: pencarian nama, saring gender/status, urut nama/tanggal, baris berisi avatar + identitas + status **Aktif/Nonaktif**, aksi **Edit / Duplikat / Hapus** per baris, dan peringatan saat menghapus anggota yang sudah dipakai turnamen |
 | **Turnamen** (`#/klub/<id>/turnamen`) | Daftar + filter status, pembuatan **Knockout / Americano / Liga**, halaman detail turnamen |
-| **Leaderboard** (`#/klub/<id>/leaderboard`) | Statistik pemain klub: jumlah pertandingan, menang/kalah, win rate, gelar, riwayat — **terpisah** Knockout dan Americano |
+| **Leaderboard** (`#/klub/<id>/leaderboard`) | Statistik pemain klub: jumlah pertandingan, menang/kalah, win rate, poin, gelar, riwayat — tab **terpisah** Knockout / **Liga** / Americano plus tampilan **Gabungan** |
 | **Penyimpanan** (`#/penyimpanan`) | Status mode data (lokal/online) + panduan integrasi Supabase |
 
 Panduan ramah pengguna: kartu **"Mulai dari sini"** dengan progres 3 langkah (buat klub → tambah
@@ -60,7 +60,8 @@ sah; 12-10 atau 13-11 ditolak). Liga tidak lagi punya pilihan target 15/21/24. A
 target 11/15/21/24 karena poinnya dijumlahkan, bukan per game.
 
 Aturan penting: **poin Americano tidak pernah dihitung sebagai kemenangan Knockout**, dan poin Liga berdiri
-sendiri di dalam liga (tidak masuk klasemen klub).
+sendiri di dalam liga — di leaderboard klub Liga punya tabnya sendiri (poin liga tidak dicampur dengan poin
+Americano), sedangkan tampilan Gabungan hanya menggabungkan jumlah pertandingan dan gelar.
 
 ---
 
@@ -171,7 +172,7 @@ npm test
 skor lama diubah, validasi Best of 3/5 (seri, skor negatif, game berlebih), jadwal rotasi Americano
 (8 pemain / 7 ronde = 28 pasangan unik, pembagian istirahat adil), klasemen individu, dan statistik klub.
 
-Total saat ini **47 test di 7 berkas**, termasuk: jadwal liga round-robin (4 & 5 peserta: setiap pasangan
+Total saat ini **51 test di 7 berkas**, termasuk: jadwal liga round-robin (4 & 5 peserta: setiap pasangan
 bertemu sekali, istirahat adil saat ganjil, batas ronde tanpa mengulang lawan), validasi skor liga
 (sampai 11 poin per pertandingan, seri, nilai di luar batas), aturan 11 poin per game Knockout,
 klasemen liga tanpa hitung ganda saat skor diedit/dibatalkan, regresi pemangkasan data (match liga tidak

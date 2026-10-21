@@ -211,3 +211,61 @@ describe('ringkasan dashboard dengan liga', () => {
     expect(ringkas.turnamenAktif).toBe(0)
   })
 })
+
+describe('statistik liga di leaderboard', () => {
+  const anggota = [member('m1', 'Ana'), member('m2', 'Budi'), member('m3', 'Cici')]
+  const t = turnamen({ id: 'tl', type: 'liga', status: 'finished', format: 'single', target_points: 11 })
+  const peserta: Participant[] = [
+    { id: 'lp1', tournament_id: 'tl', label: 'Ana', member_ids: ['m1'] },
+    { id: 'lp2', tournament_id: 'tl', label: 'Budi', member_ids: ['m2'] },
+    { id: 'lp3', tournament_id: 'tl', label: 'Cici', member_ids: ['m3'] },
+  ]
+  const matches = [
+    {
+      id: 'lm1', tournament_id: 'tl', round_id: 'r1', round_no: 1, court_no: 1,
+      team_a: ['m1'], team_b: ['m2'], score_a: 11, score_b: 5,
+    },
+    {
+      id: 'lm2', tournament_id: 'tl', round_id: 'r2', round_no: 2, court_no: 1,
+      team_a: ['m1'], team_b: ['m3'], score_a: 11, score_b: 9,
+    },
+    {
+      id: 'lm3', tournament_id: 'tl', round_id: 'r3', round_no: 3, court_no: 1,
+      team_a: ['m2'], team_b: ['m3'], score_a: 11, score_b: 7,
+    },
+  ]
+
+  it('menghitung main, menang/kalah, poin, dan gelar liga per pemain', () => {
+    const stat = hitungStatistikKlub(anggota, [t], peserta, [], [], matches)
+    const ana = stat.find((s) => s.memberId === 'm1')!
+    expect(ana.liga.matches).toBe(2)
+    expect(ana.liga.wins).toBe(2)
+    expect(ana.liga.losses).toBe(0)
+    expect(ana.liga.poin).toBe(22)
+    expect(ana.liga.titles).toBe(1)
+    expect(ana.liga.riwayat[0]).toMatchObject({ jenis: 'Liga', pencapaian: 'Juara' })
+
+    const budi = stat.find((s) => s.memberId === 'm2')!
+    expect(budi.liga.poin).toBe(16)
+    expect(budi.liga.wins).toBe(1)
+    expect(budi.liga.titles).toBe(0)
+
+    // poin liga tidak bocor ke knockout/americano
+    expect(stat.every((s) => s.knockout.matches === 0 && s.americano.poin === 0)).toBe(true)
+  })
+
+  it('mengurutkan berdasarkan poin liga', () => {
+    const stat = hitungStatistikKlub(anggota, [t], peserta, [], [], matches)
+    const urut = urutkanStatistik(stat, 'poin', 'liga').map((s) => s.nama)
+    expect(urut).toEqual(['Ana', 'Budi', 'Cici'])
+    const gelar = urutkanStatistik(stat, 'gelar', 'liga').map((s) => s.nama)
+    expect(gelar[0]).toBe('Ana')
+  })
+
+  it('liga yang belum selesai belum memberi gelar', () => {
+    const berjalan = { ...t, status: 'ongoing' as const }
+    const stat = hitungStatistikKlub(anggota, [berjalan], peserta, [], [], matches)
+    expect(stat.every((s) => s.liga.titles === 0)).toBe(true)
+    expect(stat.find((s) => s.memberId === 'm1')!.liga.poin).toBe(22)
+  })
+})

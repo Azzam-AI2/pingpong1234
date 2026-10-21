@@ -7,7 +7,7 @@ import type {
   Tournament,
 } from './types'
 import { americanoStandings } from './americano'
-import { hitungKlasemenLiga, juaraLiga } from './liga'
+import { hitungKlasemenLiga, juaraLiga, kunciTim } from './liga'
 import { labelBabak, pemenangTurnamen, resolveWinner } from './knockout'
 import { roundLabel } from './utils'
 
@@ -15,7 +15,7 @@ export interface RiwayatTurnamen {
   tournamentId: string
   nama: string
   tanggal: string
-  jenis: 'Knockout' | 'Americano'
+  jenis: 'Knockout' | 'Americano' | 'Liga'
   pencapaian: 'Juara' | 'Runner-up' | 'Peserta'
   catatan: string
 }
@@ -37,6 +37,7 @@ export interface StatAnggota {
   gender: Member['gender']
   knockout: StatDisiplin
   americano: StatDisiplin
+  liga: StatDisiplin
 }
 
 function kosong(): StatDisiplin {
@@ -60,6 +61,7 @@ export function hitungStatistikKlub(
   participants: Participant[],
   knockoutMatches: KnockoutMatch[],
   americanoMatches: AmericanoMatch[],
+  leagueMatches: LeagueMatch[] = [],
 ): StatAnggota[] {
   const pesertaById = new Map(participants.map((p) => [p.id, p]))
   const stat = new Map<string, StatAnggota>()
@@ -71,6 +73,7 @@ export function hitungStatistikKlub(
       gender: m.gender,
       knockout: kosong(),
       americano: kosong(),
+      liga: kosong(),
     })
   }
 
@@ -198,34 +201,108 @@ export function hitungStatistikKlub(
     }
   }
 
+  // ---------- Liga ----------
+  for (const t of tournaments) {
+    if (t.type !== 'liga') continue
+    const matches = leagueMatches.filter((m) => m.tournament_id === t.id)
+    if (!matches.length) continue
+    const pesertaLiga = participants.filter((x) => x.tournament_id === t.id)
+    const klasemen = hitungKlasemenLiga(pesertaLiga, matches, (id) => stat.get(id)?.nama ?? id)
+    const juaraKunci = new Set(
+      t.status === 'finished' ? juaraLiga(klasemen.utama).map((b) => b.kunci) : [],
+    )
+
+    // poin & menang/kalah tiap pemain diambil dari klasemen pemain (bukan pasangan)
+    for (const baris of klasemen.pemain) {
+      const target = stat.get(baris.kunci)
+      if (!target) continue
+      target.liga.matches += baris.main
+      target.liga.wins += baris.menang
+      target.liga.losses += baris.kalah
+      target.liga.poin += baris.totalPoin
+    }
+
+    for (const p of pesertaLiga) {
+      const juara = juaraKunci.has(kunciTim(p.member_ids))
+      for (const id of p.member_ids) {
+        const target = stat.get(id)
+        if (!target) continue
+        const baris = klasemen.pemain.find((b) => b.kunci === id)
+        if (juara) target.liga.titles++
+        if ((baris?.main ?? 0) > 0 || t.status !== 'draft') {
+          target.liga.riwayat.push({
+            tournamentId: t.id,
+            nama: t.name,
+            tanggal: t.date,
+            jenis: 'Liga',
+            pencapaian: juara ? 'Juara' : 'Peserta',
+            catatan: `Peringkat ${baris?.peringkat ?? '-'} · ${baris?.totalPoin ?? 0} poin`,
+          })
+        }
+      }
+    }
+  }
+
   return [...stat.values()].map((s) => {
     finalisasi(s.knockout)
     finalisasi(s.americano)
+    finalisasi(s.liga)
     return s
   })
 }
 
 export type UrutStat = 'gelar' | 'winrate' | 'pertandingan' | 'poin'
+export type DisiplinStat = 'knockout' | 'americano' | 'liga' | 'gabungan'
 
-export function urutkanStatistik(rows: StatAnggota[], kunci: UrutStat): StatAnggota[] {
+/** Jumlah gelar juara: satu disiplin, atau gabungan Knockout+Americano+Liga. */
+export function jumlahGelar(s: StatAnggota, disiplin: DisiplinStat = 'gabungan'): number {
+  if (disiplin !== 'gabungan') return s[disiplin].titles
+  return s.knockout.titles + s.americano.titles + s.liga.titles
+}
+
+/** Jumlah pertandingan: satu disiplin, atau gabungan ketiganya. */
+export function jumlahPertandingan(s: StatAnggota, disiplin: DisiplinStat = 'gabungan'): number {
+  if (disiplin !== 'gabungan') return s[disiplin].matches
+  return s.knockout.matches + s.americano.matches + s.liga.matches
+}
+
+/** Win rate dari menang/kalah seluruh disiplin (untuk tampilan gabungan). */
+export function winrateGabungan(s: StatAnggota): number {
+  const menang = s.knockout.wins + s.americano.wins + s.liga.wins
+  const kalah = s.knockout.losses + s.americano.losses + s.liga.losses
+  const total = menang + kalah
+  return total > 0 ? Math.round((menang / total) * 1000) / 10 : 0
+}
+
+export function urutkanStatistik(
+  rows: StatAnggota[],
+  kunci: UrutStat,
+  disiplin: DisiplinStat = 'knockout',
+): StatAnggota[] {
+  const bagian = (s: StatAnggota) => (disiplin === 'gabungan' ? null : s[disiplin])
+  const wr = (s: StatAnggota) => bagian(s)?.winrate ?? winrateGabungan(s)
+  const menang = (s: StatAnggota) =>
+    bagian(s)?.wins ?? s.knockout.wins + s.americano.wins + s.liga.wins
+  const poin = (s: StatAnggota) => bagian(s)?.poin ?? s.americano.poin + s.liga.poin
+
   const arr = rows.slice()
   arr.sort((a, b) => {
     if (kunci === 'gelar') {
-      const t = b.knockout.titles + b.americano.titles - (a.knockout.titles + a.americano.titles)
+      const t = jumlahGelar(b, disiplin) - jumlahGelar(a, disiplin)
       if (t) return t
-      return b.knockout.winrate - a.knockout.winrate
+      return wr(b) - wr(a)
     }
     if (kunci === 'winrate') {
-      const t = b.knockout.winrate - a.knockout.winrate
+      const t = wr(b) - wr(a)
       if (t) return t
-      return b.knockout.wins - a.knockout.wins
+      return menang(b) - menang(a)
     }
     if (kunci === 'pertandingan') {
-      return b.knockout.matches + b.americano.matches - (a.knockout.matches + a.americano.matches)
+      return jumlahPertandingan(b, disiplin) - jumlahPertandingan(a, disiplin)
     }
-    const t = b.americano.poin - a.americano.poin
+    const t = poin(b) - poin(a)
     if (t) return t
-    return b.knockout.wins - a.knockout.wins
+    return menang(b) - menang(a)
   })
   return arr
 }
@@ -284,20 +361,29 @@ export function ringkasDashboard(
   }
   juara.sort((a, b) => (a.tanggal < b.tanggal ? 1 : -1))
 
-  const stat = hitungStatistikKlub(members, tournaments, participants, knockoutMatches, americanoMatches)
-    .filter((s) => s.knockout.matches > 0 || s.americano.matches > 0)
+  const stat = hitungStatistikKlub(
+    members,
+    tournaments,
+    participants,
+    knockoutMatches,
+    americanoMatches,
+    leagueMatches,
+  )
+    .filter(
+      (s) => s.knockout.matches > 0 || s.americano.matches > 0 || s.liga.matches > 0,
+    )
     .sort(
       (a, b) =>
-        b.knockout.titles + b.americano.titles - (a.knockout.titles + a.americano.titles) ||
-        b.knockout.winrate - a.knockout.winrate ||
-        b.knockout.wins - a.knockout.wins,
+        jumlahGelar(b) - jumlahGelar(a) ||
+        winrateGabungan(b) - winrateGabungan(a) ||
+        a.nama.localeCompare(b.nama, 'id'),
     )
     .slice(0, 5)
     .map((s) => ({
       nama: s.nama,
-      gelar: s.knockout.titles + s.americano.titles,
-      winrate: s.knockout.winrate,
-      matches: s.knockout.matches + s.americano.matches,
+      gelar: jumlahGelar(s),
+      winrate: winrateGabungan(s),
+      matches: jumlahPertandingan(s),
     }))
 
   return {
