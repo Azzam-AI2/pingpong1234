@@ -1,11 +1,13 @@
 import type {
   AmericanoMatch,
   KnockoutMatch,
+  LeagueMatch,
   Member,
   Participant,
   Tournament,
 } from './types'
 import { americanoStandings } from './americano'
+import { hitungKlasemenLiga, juaraLiga } from './liga'
 import { labelBabak, pemenangTurnamen, resolveWinner } from './knockout'
 import { roundLabel } from './utils'
 
@@ -244,6 +246,7 @@ export function ringkasDashboard(
   participants: Participant[],
   knockoutMatches: KnockoutMatch[],
   americanoMatches: AmericanoMatch[],
+  leagueMatches: LeagueMatch[] = [],
 ): RingkasanDashboard {
   const selesai = tournaments.filter((t) => t.status === 'finished')
   const juara: { nama: string; turnamen: string; tanggal: string; jenis: string }[] = []
@@ -253,6 +256,18 @@ export function ringkasDashboard(
       const best = pemenangTurnamen(matches, t.best_of ?? 3)
       const p = participants.find((x) => x.id === best)
       if (p) juara.push({ nama: p.label, turnamen: t.name, tanggal: t.date, jenis: 'Knockout' })
+    } else if (t.type === 'liga') {
+      const matches = leagueMatches.filter((m) => m.tournament_id === t.id)
+      const peserta = participants.filter((x) => x.tournament_id === t.id)
+      const top = juaraLiga(hitungKlasemenLiga(peserta, matches).utama)
+      if (top.length) {
+        juara.push({
+          nama: top.map((k) => k.nama).join(' & '),
+          turnamen: t.name,
+          tanggal: t.date,
+          jenis: 'Liga',
+        })
+      }
     } else {
       const matches = americanoMatches.filter((m) => m.tournament_id === t.id)
       const pemain = new Set<string>()

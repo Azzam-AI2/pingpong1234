@@ -183,3 +183,31 @@ describe('ringkasan dashboard', () => {
     expect(r.topPemain[0].gelar).toBe(1)
   })
 })
+
+describe('ringkasan dashboard dengan liga', () => {
+  it('mengambil juara liga dari klasemen poin, bukan sebagai Americano', () => {
+    const anggota = [member('m1', 'Ana'), member('m2', 'Budi')]
+    const t = turnamen({ id: 't1', type: 'liga', status: 'finished', format: 'single' })
+    const peserta: Participant[] = [
+      { id: 'p1', tournament_id: 't1', label: 'Ana', member_ids: ['m1'] },
+      { id: 'p2', tournament_id: 't1', label: 'Budi', member_ids: ['m2'] },
+    ]
+    const matches = [
+      {
+        id: 'lm1',
+        tournament_id: 't1',
+        round_id: 'r1',
+        round_no: 1,
+        court_no: 1,
+        team_a: ['m1'],
+        team_b: ['m2'],
+        score_a: 11,
+        score_b: 9,
+      },
+    ]
+    const ringkas = ringkasDashboard([{ id: 'c1' }], anggota, [t], peserta, [], [], matches)
+    expect(ringkas.juaraTerbaru).toMatchObject({ nama: 'Ana', jenis: 'Liga', turnamen: 'Turnamen' })
+    expect(ringkas.turnamenSelesai).toBe(1)
+    expect(ringkas.turnamenAktif).toBe(0)
+  })
+})
