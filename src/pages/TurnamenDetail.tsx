@@ -378,7 +378,7 @@ export default function TurnamenDetail({
               />
             </Kolom>
             <p className="rounded-xl border border-ink/12 bg-ink/6 p-2.5 text-xs text-ink-soft">
-              Skor liga tetap dimainkan sampai <b>11 poin</b> per pertandingan.
+              Skor liga mengikuti aturan cabang klub (pingpong 11 poin; bulu tangkis 21 poin).
             </p>
             <Kolom
               label="Jumlah ronde"

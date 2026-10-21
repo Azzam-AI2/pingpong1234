@@ -472,7 +472,7 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
                 Best of {bestOf} · butuh {butuhMenang} game kemenangan
               </p>
               <p className="text-center text-xs text-brand-800">
-                Setiap game dimainkan sampai 11 poin (mis. 11-9, 11-10, 5-11).
+                Setiap game mengikuti aturan cabang klub: pingpong sampai 11 poin (tanpa deuce), bulu tangkis sampai 21 poin (unggul 2, maksimal 30).
               </p>
             </div>
 
