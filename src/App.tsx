@@ -13,6 +13,7 @@ import Supabase from './pages/Supabase'
 import Undangan from './pages/Undangan'
 import Masuk from './pages/Masuk'
 import AturSandi from './pages/AturSandi'
+import Daftar from './pages/Daftar'
 import { modeOnline } from './lib/auth'
 import { useSesi } from './lib/useSesi'
 
@@ -79,6 +80,7 @@ function Isi() {
 
 export default function App() {
   const { sesi, memuat } = useSesi()
+  const [ruteApp] = pakaiRute()
   const wajibMasuk = modeOnline()
 
   // Tunggu sesi diketahui supaya data tidak sempat dimuat sebagai anonim.
@@ -91,7 +93,9 @@ export default function App() {
   }
 
   // Mode lokal (Supabase tidak dikonfigurasi) tetap bisa dipakai tanpa akun.
-  if (wajibMasuk && !sesi) return <Masuk />
+  if (wajibMasuk && !sesi) {
+    return ruteApp.halaman === 'daftar' ? <Daftar /> : <Masuk />
+  }
 
   return (
     <AppProvider key={sesi?.user.id ?? 'lokal'}>

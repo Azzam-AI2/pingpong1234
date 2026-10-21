@@ -47,6 +47,7 @@ const BAGIAN: Record<NamaHalaman, string> = {
   leaderboard: 'Peringkat',
   undangan: 'Undangan',
   'atur-sandi': 'Atur sandi',
+  daftar: 'Daftar',
   penyimpanan: 'Penyimpanan',
 }
 

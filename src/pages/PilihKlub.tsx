@@ -7,7 +7,9 @@ import { bersihkanAksi, keHash, type Target } from '../lib/router'
 import { formatTanggal } from '../lib/utils'
 import { pemenangTurnamen } from '../lib/knockout'
 import { DaftarUndangan } from './Undangan'
-import { bisaAturKlub, klubSaya, labelPeran, modeOnline } from '../lib/auth'
+import { PendaftarMasuk } from '../components/PendaftarMasuk'
+import { bisaAturKlub, bisaKelola, keluar, klubSaya, labelPeran, modeOnline } from '../lib/auth'
+import { pastikanAntrean } from '../lib/pendaftaran'
 
 /**
  * Halaman awal aplikasi: daftar klub sebagai hierarki tertinggi.
@@ -18,16 +20,24 @@ export default function PilihKlub({ aksi, pindah }: { aksi?: string; pindah: (t:
   const [form, setForm] = useState<DataKlubForm | null>(null)
   const [konfirmasi, setKonfirmasi] = useState<string | null>(null)
   const [peran, setPeran] = useState<Record<string, string>>({})
+  const [peranSiap, setPeranSiap] = useState(false)
   const daring = modeOnline()
 
   // Peran dibaca dari database (RPC my_clubs), bukan dari tampilan, supaya
   // tombol yang muncul mengikuti izin yang benar-benar dimiliki pengguna.
   useEffect(() => {
-    if (!daring) return
+    if (!daring) {
+      setPeranSiap(true)
+      return
+    }
     let hidup = true
     void klubSaya().then((rows) => {
-      if (hidup) setPeran(Object.fromEntries(rows.map((r) => [r.club_id, r.role])))
+      if (!hidup) return
+      setPeran(Object.fromEntries(rows.map((r) => [r.club_id, r.role])))
+      setPeranSiap(true)
     })
+    // Akun baru tanpa klub tetap dicatat di antrean penugasan (idempoten).
+    void pastikanAntrean()
     return () => {
       hidup = false
     }
@@ -61,6 +71,27 @@ export default function PilihKlub({ aksi, pindah }: { aksi?: string; pindah: (t:
       </div>
 
       {daring && <DaftarUndangan onBerubah={() => void muatUlang()} />}
+
+      {daring && peranSiap && Object.keys(peran).length === 0 && (
+        <Kartu>
+          <h2 className="text-base font-semibold text-ink">Akun kamu aktif, menunggu penugasan</h2>
+          <p className="mt-1 text-sm text-ink-muted">
+            Pemilik klub belum menambahkanmu ke klub mana pun. Setelah ditugaskan, klubnya otomatis
+            muncul di halaman ini.
+          </p>
+          <div className="mt-3">
+            <Tombol variasi="sekunder" kecil onClick={() => void keluar()}>
+              Keluar
+            </Tombol>
+          </div>
+        </Kartu>
+      )}
+
+      <PendaftarMasuk
+        klub={snapshot.clubs
+          .filter((c) => bisaKelola(peran[c.id] ?? ''))
+          .map((c) => ({ id: c.id, name: c.name, role: peran[c.id] ?? 'member' }))}
+      />
 
       {snapshot.clubs.length === 0 ? (
         <>

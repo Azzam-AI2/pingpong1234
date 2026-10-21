@@ -125,11 +125,9 @@ export async function tanganiTautanAuth(): Promise<boolean> {
     }
   }
   const galat = /error_description=([^&]+)/.exec(hash)?.[1]
-  window.history.replaceState(
-    null,
-    '',
-    `${window.location.pathname}${galat ? '#/masuk' : '#/atur-sandi'}`,
-  )
+  const baruDaftar = /type=signup/.test(hash)
+  const tujuan = galat ? '#/masuk' : baruDaftar ? '#/' : '#/atur-sandi'
+  window.history.replaceState(null, '', `${window.location.pathname}${tujuan}`)
   // router mendengarkan hashchange; replaceState tidak memicunya
   window.dispatchEvent(new HashChangeEvent('hashchange'))
   return !galat

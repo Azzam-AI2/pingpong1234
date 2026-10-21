@@ -112,8 +112,12 @@ export default function Masuk() {
       </Kartu>
 
       <p className="text-center text-xs text-ink-muted">
-        Belum punya akun? Akun dibuat lewat undangan pemilik atau admin klub. Minta mereka mengundang
-        emailmu, lalu buka tautan undangan di kotak masuk.
+        Belum punya akun?{' '}
+        <a href="#/daftar" className="font-medium text-brand-800 underline">
+          Daftar di sini
+        </a>{' '}
+        — akun baru menunggu ditugaskan ke klub oleh pemilik klub. Kalau kamu diundang lewat email,
+        cukup buka tautan undangan di kotak masuk.
       </p>
     </div>
   )
