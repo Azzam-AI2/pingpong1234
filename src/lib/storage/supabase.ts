@@ -7,7 +7,6 @@ const URL_KUNCI = 'VITE_SUPABASE_URL'
 const ANON_KUNCI = 'VITE_SUPABASE_ANON_KEY'
 
 const KUNCI_MODE_LOKAL = 'pcm.paksa_lokal'
-const KUNCI_OVERRIDE = 'pcm.supabase'
 
 export interface KonfigurasiSupabase {
   status: 'siap' | 'belum-diatur' | 'kunci-terlarang' | 'url-tidak-valid'
@@ -25,34 +24,6 @@ function bacaPayloadJwt(token: string): Record<string, unknown> | null {
     return JSON.parse(json) as Record<string, unknown>
   } catch {
     return null
-  }
-}
-
-export interface OverrideSupabase {
-  url: string
-  anonKey: string
-}
-
-/** Konfigurasi yang diisi dari halaman Penyimpanan (tanpa build ulang), kalau ada. */
-export function bacaOverrideSupabase(): OverrideSupabase | null {
-  try {
-    const mentah = localStorage.getItem(KUNCI_OVERRIDE)
-    if (!mentah) return null
-    const o = JSON.parse(mentah) as { url?: string; anonKey?: string }
-    if (!o?.url || !o?.anonKey) return null
-    return { url: String(o.url), anonKey: String(o.anonKey) }
-  } catch {
-    return null
-  }
-}
-
-/** Simpan (atau hapus dengan null) konfigurasi dari perangkat ini. */
-export function simpanOverrideSupabase(nilai: OverrideSupabase | null): void {
-  try {
-    if (!nilai) localStorage.removeItem(KUNCI_OVERRIDE)
-    else localStorage.setItem(KUNCI_OVERRIDE, JSON.stringify(nilai))
-  } catch {
-    /* localStorage bisa diblokir; abaikan */
   }
 }
 
@@ -87,20 +58,17 @@ export function validasiKonfigurasi(urlMentah: string, anonKeyMentah: string): K
   return { status: 'siap', url, anonKey, pesan: 'Konfigurasi Supabase valid.' }
 }
 
-/** Cek konfigurasi efektif: isian dari halaman Penyimpanan lebih dulu, lalu env. */
+/**
+ * Konfigurasi Supabase hanya dibaca dari variabel lingkungan (.env / env var build):
+ * VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY. Tidak ada jalur lain.
+ */
 export function bacaKonfigurasiSupabase(env = import.meta.env): KonfigurasiSupabase {
-  const override = bacaOverrideSupabase()
   const cek = validasiKonfigurasi(
-    override?.url ?? String(env[URL_KUNCI] ?? ''),
-    override?.anonKey ?? String(env[ANON_KUNCI] ?? ''),
+    String(env[URL_KUNCI] ?? ''),
+    String(env[ANON_KUNCI] ?? ''),
   )
   if (cek.status !== 'siap') return cek
-  return {
-    ...cek,
-    pesan: override
-      ? 'Konfigurasi Supabase diisi dari perangkat ini (halaman Penyimpanan).'
-      : 'Konfigurasi Supabase terbaca dari variabel lingkungan (env).',
-  }
+  return { ...cek, pesan: 'Konfigurasi Supabase terbaca dari .env.' }
 }
 
 /** Pengguna memilih mode lokal dari tombol di banner. */

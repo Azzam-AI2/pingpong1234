@@ -8,14 +8,7 @@ import {
 import type { Op } from './mirror'
 
 export type { Op } from './mirror'
-export {
-  bacaKonfigurasiSupabase,
-  bacaOverrideSupabase,
-  paksaModeLokal,
-  simpanOverrideSupabase,
-  sedangPaksaModeLokal,
-  validasiKonfigurasi,
-} from './supabase'
+export { bacaKonfigurasiSupabase, paksaModeLokal, sedangPaksaModeLokal } from './supabase'
 
 export interface Backend {
   readonly kind: 'supabase' | 'local'

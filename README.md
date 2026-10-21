@@ -172,7 +172,7 @@ npm test
 skor lama diubah, validasi Best of 3/5 (seri, skor negatif, game berlebih), jadwal rotasi Americano
 (8 pemain / 7 ronde = 28 pasangan unik, pembagian istirahat adil), klasemen individu, dan statistik klub.
 
-Total saat ini **51 test di 7 berkas**, termasuk: jadwal liga round-robin (4 & 5 peserta: setiap pasangan
+Total saat ini **56 test di 8 berkas**, termasuk: jadwal liga round-robin (4 & 5 peserta: setiap pasangan
 bertemu sekali, istirahat adil saat ganjil, batas ronde tanpa mengulang lawan), validasi skor liga
 (sampai 11 poin per pertandingan, seri, nilai di luar batas), aturan 11 poin per game Knockout,
 klasemen liga tanpa hitung ganda saat skor diedit/dibatalkan, regresi pemangkasan data (match liga tidak
