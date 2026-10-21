@@ -1,8 +1,8 @@
-# Fitur Tambahan: Mode Liga (rencana)
+# Fitur Tambahan: Mode Liga
 
-> Status: **belum diimplementasikan**. Dikerjakan setelah langkah Supabase (online) selesai.
-> Isi bagian 0 di bawah adalah spesifikasi apa adanya dari pemilik produk; bagian 7 adalah catatan
-> teknis bagaimana fitur ini menempel ke struktur aplikasi yang sudah ada.
+> Status: **sudah diimplementasikan** (mode turnamen ketiga di aplikasi, berdampingan dengan Knockout
+> dan Americano). Isi bagian 1–6 adalah spesifikasi dari pemilik produk; bagian 7 mencatat keputusan
+> teknis yang diambil saat implementasi.
 
 Buat mode turnamen **Liga** dengan dua format: **Single** dan **Double**. Tujuan utamanya adalah
 mengumpulkan poin sebanyak-banyaknya. Pemain atau tim dengan total poin tertinggi menjadi juara.
@@ -81,39 +81,35 @@ sudah ada.
 
 ---
 
-## 7. Catatan teknis (rencana implementasi)
+## 7. Catatan implementasi
 
-Bagian ini bukan permintaan produk, hanya rencana teknis agar pekerjaan nanti cepat.
+**Logika murni — `src/lib/liga.ts`** (diuji tanpa browser, 9 unit test):
 
-**Logika murni — `src/lib/liga.ts`** (dapat diuji tanpa browser):
+- `buatJadwalLiga(pesertaIds, maksRonde?)` — jadwal semua-peserta-bertemu dengan metode lingkaran
+  (circle method): setiap pasangan bertemu tepat sekali; jumlah peserta ganjil ditangani dengan bye
+  bergiliran; opsi batas jumlah ronde memotong jadwal tanpa mengulang lawan.
+- `hitungKlasemenLiga(peserta, matches, namaAnggota)` — total poin dari skor tim, rata-rata poin per
+  pertandingan, menang/kalah; urut total poin → rata-rata → kemenangan. Klasemen **selalu dihitung
+  ulang** dari data match tersimpan sehingga mengedit atau membatalkan skor tidak pernah menggandakan
+  poin. Peringkat utama di level peserta (pasangan untuk Double); ringkasan pemain bersifat tambahan
+  dan tidak menambah poin klasemen.
+- `validasiSkorLiga(skorA, skorB, targetPoin)` — pemenang wajib mencapai target poin dan unggul ≥ 2
+  (aturan deuce), skor 0–99 bilangan bulat, tidak boleh seri.
 
-- `buatJadwalRoundRobin(pesertaIds, maksRonde?)` — jadwal semua-peserta-bertemu dengan metode
-  lingkaran (circle method); jumlah peserta ganjil ditangani dengan bye bergiliran; opsi batas
-  jumlah ronde memotong jadwal secara merata (setiap peserta main mendekati jumlah ronde yang sama).
-- `hitungKlasemen(liga, peserta, matches)` — total poin dari skor tim, rata-rata poin/pertandingan,
-  menang/kalah; urut total poin → rata-rata → kemenangan. Klasemen **selalu dihitung ulang** dari
-  data match tersimpan sehingga mengedit atau membatalkan skor tidak pernah menggandakan poin.
-- `validasiSkorLiga(skorA, skorB, targetPoin)` — pemenang wajib mencapai target poin (dengan aturan
-  selisih 2 saat deuce), skor 0–99, tidak boleh seri, dan pertandingan yang dibatalkan tidak dihitung.
+**Database (Supabase)** — tabel terpisah, tidak menyentuh tabel Knockout/Americano:
 
-**Database (Supabase)** — pola sama seperti Americano, tabel terpisah agar fitur lain tidak berubah:
-
-- `leagues` (id, club_id, name, date_start, date_end, format single/double, target_points,
-  rounds_planned, status draft/ongoing/finished)
-- `league_rounds` (id, league_id, round_no)
-- `league_matches` (id, league_id, round_id, round_no, court_no, team_a jsonb, team_b jsonb,
+- `league_rounds` (id, tournament_id, round_no)
+- `league_matches` (id, tournament_id, round_id, round_no, court_no, team_a jsonb, team_b jsonb,
   score_a, score_b) — `team_a`/`team_b` berisi id anggota (1 untuk Single, 2 untuk Double)
-- Peserta liga memakai tabel `participants` yang sudah ada (label + member_ids), sehingga statistik
-  dan riwayat bisa memakai tabel yang sama.
+- `tournaments` ditambah kolom `date_end` dan `rounds_planned`, dan `type` menerima nilai `'liga'`.
+  `supabase/schema.sql` memuat blok migrasi (`alter table ... add column if not exists`) yang aman
+  dijalankan ulang pada database yang sudah ada.
+- Peserta liga memakai tabel `participants` yang sudah ada (label + member_ids).
 
-**Klasemen Double tanpa hitung ganda**: peringkat utama ditampilkan pada level **pasangan**
-(total poin pasangan), sedangkan statistik anggota ditampilkan sebagai ringkasan pemain di bawahnya —
-poin pasangan tidak ditambahkan lagi ke total level liga saat menampilkan pemain.
+**Keputusan yang diambil** (bisa diubah kalau pemilik produk mau beda):
 
-**Yang perlu diputuskan saat implementasi** (tanyakan dulu ke pemilik produk):
-
-1. Aturan kemenangan saat skor melewati target: wajib selisih 2 (deuce) atau sederhana "yang lebih
-   tinggi menang"?
-2. Bila jumlah peserta ganjil pada format Double — peserta mana yang istirahat, dan apakah istirahat
-   bergiliran wajib adil?
-3. Apakah liga boleh memakai format "semua peserta bertemu dua kali" (home-away)?
+1. **Deuce**: pemenang wajib mencapai target poin dan unggul minimal 2 (mis. 21–19 sah, 21–20 dan
+   22–21 ditolak, 22–20 sah). Ini mengikuti aturan tenis meja.
+2. **Peserta ganjil**: satu peserta istirahat tiap ronde, diputar merata oleh metode lingkaran.
+3. **Satu putaran** (semua peserta bertemu sekali) dengan opsi batas jumlah ronde; belum ada mode
+   "bertemu dua kali".

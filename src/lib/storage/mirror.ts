@@ -33,6 +33,7 @@ export function pangkasYatim(s: Snapshot): Snapshot {
   const clubIds = new Set(s.clubs.map((c) => c.id))
   const turnamenIds = new Set(s.tournaments.map((t) => t.id))
   const rondeIds = new Set(s.americano_rounds.map((r) => r.id))
+  const rondeLigaIds = new Set(s.league_rounds.map((r) => r.id))
   return {
     clubs: s.clubs,
     members: s.members.filter((m) => clubIds.has(m.club_id)),
@@ -45,7 +46,7 @@ export function pangkasYatim(s: Snapshot): Snapshot {
     ),
     league_rounds: s.league_rounds.filter((r) => turnamenIds.has(r.tournament_id)),
     league_matches: s.league_matches.filter(
-      (m) => turnamenIds.has(m.tournament_id) && rondeIds.has(m.round_id),
+      (m) => turnamenIds.has(m.tournament_id) && rondeLigaIds.has(m.round_id),
     ),
   }
 }

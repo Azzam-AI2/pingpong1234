@@ -241,7 +241,7 @@ export function PenjelasanJenis({ ringkas = false }: { ringkas?: boolean }) {
       nama: 'Liga',
       ikon: '📅',
       isi: 'Semua peserta saling bertemu, poin dikumpulkan sepanjang liga. Juara = total poin tertinggi.',
-      segera: true,
+      segera: false,
     },
   ]
 

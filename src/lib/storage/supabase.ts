@@ -120,6 +120,8 @@ export class SupabaseBackend {
       'knockout_matches',
       'americano_rounds',
       'americano_matches',
+      'league_rounds',
+      'league_matches',
     ]
     const hasil = await this.denganBatas(
       Promise.all(

@@ -21,7 +21,7 @@ masuk ke sebuah klub, semua menu bekerja di dalam klub itu.
 | **Daftar klub** (`#/`) | Buat/edit/hapus klub, lihat ringkasan tiap klub (anggota, turnamen, juara terbaru), tombol **Masuk klub** |
 | **Beranda klub** (`#/klub/<id>`) | Panduan 3 langkah, jumlah anggota, turnamen berjalan/selesai, daftar turnamen yang sedang berjalan, juara terbaru, top pemain, tombol cepat |
 | **Anggota** (`#/klub/<id>/anggota`) | CRUD anggota (nama, jenis kelamin, foto) + peringatan saat menghapus anggota yang sudah dipakai turnamen |
-| **Turnamen** (`#/klub/<id>/turnamen`) | Daftar + filter status, pembuatan Knockout/Americano, halaman detail turnamen |
+| **Turnamen** (`#/klub/<id>/turnamen`) | Daftar + filter status, pembuatan **Knockout / Americano / Liga**, halaman detail turnamen |
 | **Leaderboard** (`#/klub/<id>/leaderboard`) | Statistik pemain klub: jumlah pertandingan, menang/kalah, win rate, gelar, riwayat — **terpisah** Knockout dan Americano |
 | **Penyimpanan** (`#/penyimpanan`) | Status mode data (lokal/online) + panduan integrasi Supabase |
 
@@ -40,7 +40,15 @@ otomatis sambil menekan pengulangan pasangan/lawan, target poin 11/15/21/24, dur
 (memunculkan timer per ronde), skor per meja, klasemen individu (poin = jumlah poin yang dicetak tim),
 peringkat + jumlah pertandingan + total poin, juara individu dengan animasi.
 
-Aturan penting: **poin Americano tidak pernah dihitung sebagai kemenangan Knockout**.
+**Liga**: format Single (pemain) atau Double (pasangan tetap), rentang tanggal mulai–selesai, target poin
+11/15/21/24, jadwal round-robin otomatis (semua peserta saling bertemu sekali, peserta ganjil istirahat
+bergiliran, bisa dibatasi jumlah rondenya), skor per pertandingan dengan aturan deuce (unggul ≥2 poin),
+klasemen peringkat dari **total poin** lalu rata-rata poin lalu jumlah kemenangan, ringkasan statistik
+individu untuk Double (tanpa menghitung poin ganda), juara + animasi. Detail aturan & keputusan teknis di
+[`docs/mode-liga.md`](docs/mode-liga.md).
+
+Aturan penting: **poin Americano tidak pernah dihitung sebagai kemenangan Knockout**, dan poin Liga berdiri
+sendiri di dalam liga (tidak masuk klasemen klub).
 
 ---
 
@@ -150,11 +158,19 @@ npm test
 skor lama diubah, validasi Best of 3/5 (seri, skor negatif, game berlebih), jadwal rotasi Americano
 (8 pemain / 7 ronde = 28 pasangan unik, pembagian istirahat adil), klasemen individu, dan statistik klub.
 
+Total saat ini **34 test di 5 berkas**, termasuk: jadwal liga round-robin (4 & 5 peserta: setiap pasangan
+bertemu sekali, istirahat adil saat ganjil, batas ronde tanpa mengulang lawan), validasi skor liga
+(deuce, target poin, seri), klasemen liga tanpa hitung ganda saat skor diedit/dibatalkan, dan regresi
+pemangkasan data (match liga tidak boleh ikut terbuang saat ronde dihapus).
+
 Alur utama juga sudah diuji langsung di browser (mode lokal): buat klub & 6 anggota → turnamen Knockout
 6 peserta (2 bye) → 5 pertandingan diisi skor → juara otomatis + status Selesai → turnamen Americano
-6 pemain 6 ronde → 6 skor diisi → juara individu (Fajar 84 poin) → leaderboard Knockout/Americano/Gabungan
-→ muat ulang halaman: semua skor, status, dan juara tetap ada. Jalur Supabase salah konfigurasi juga diuji:
-URL tidak dapat dihubungi menampilkan banner galat merah, dan kunci `service_role` ditolak aplikasi.
+6 pemain 6 ronde → 6 skor diisi → juara individu (Fajar 84 poin) → turnamen **Liga** 4 pemain 3 ronde
+(6 pertandingan, setiap pasangan bertemu sekali) → semua skor diisi → klasemen dihitung ulang dari data
+(Budi & Cici 27 poin juara bersama, Ana & Dedi 21) → status otomatis Selesai + konfeti → leaderboard
+Knockout/Americano/Gabungan → muat ulang halaman: semua skor, status, klasemen, dan juara tetap ada.
+Jalur Supabase salah konfigurasi juga diuji: URL tidak dapat dihubungi menampilkan banner galat merah,
+dan kunci `service_role` ditolak aplikasi.
 
 ---
 
@@ -176,8 +192,8 @@ URL tidak dapat dihubungi menampilkan banner galat merah, dan kunci `service_rol
 
 ## 8. Rencana berikutnya
 
-- **Mode Liga** — spesifikasi di [`docs/mode-liga.md`](docs/mode-liga.md). Sebagian sudah disiapkan:
-  modul logika `src/lib/liga.ts` (jadwal round-robin, validasi skor target poin + deuce, klasemen
-  tanpa hitung ganda) beserta 9 unit test-nya, plus tipe data & tabel `leagues`/`league_rounds`/
-  `league_matches` pada skema. Yang belum: UI Liga (form, jadwal, input skor, klasemen) dan
-  integrasinya ke daftar turnamen.
+- **Supabase (online)** — tinggal menyambungkan: jalankan `supabase/schema.sql` (sudah termasuk tabel
+  Liga), isi `.env` lokal dan env var Vercel, lalu verifikasi badge **● Online**. Sampai itu dilakukan,
+  aplikasi berjalan di mode lokal (data per browser, belum dibagi antar anggota).
+- **Kandidat lanjutan** (belum diminta): memasukkan hasil Liga ke leaderboard klub sebagai tab
+  tersendiri, mode liga "bertemu dua kali", dan statistik lawan/game per pemain.

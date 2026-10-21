@@ -82,5 +82,7 @@ export function namaTabelPendukung(): TableName[] {
     'knockout_matches',
     'americano_rounds',
     'americano_matches',
+    'league_rounds',
+    'league_matches',
   ]
 }

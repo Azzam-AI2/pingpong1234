@@ -39,19 +39,26 @@ create table if not exists public.tournaments (
   club_id uuid not null references public.clubs(id) on delete cascade,
   name text not null check (char_length(btrim(name)) between 1 and 80),
   date date not null,
-  type text not null check (type in ('knockout', 'americano')),
+  type text not null check (type in ('knockout', 'americano', 'liga')),
   format text check (format in ('single', 'double')),
   best_of integer check (best_of in (3, 5)),
   target_points integer check (target_points in (11, 15, 21, 24)),
   match_duration_min integer check (match_duration_min between 1 and 120),
   status text not null default 'draft' check (status in ('draft', 'ongoing', 'finished')),
   created_at timestamptz not null default now(),
+  -- khusus liga
+  date_end date,
+  rounds_planned integer check (rounds_planned is null or rounds_planned between 1 and 60),
   -- knockout wajib format + best_of; americano wajib target poin
   constraint tournaments_knockout_lengkap check (
     type <> 'knockout' or (format is not null and best_of is not null)
   ),
   constraint tournaments_americano_lengkap check (
     type <> 'americano' or target_points is not null
+  ),
+  -- liga wajib format + target poin (tanggal selesai diisi aplikasi)
+  constraint tournaments_liga_lengkap check (
+    type <> 'liga' or (format is not null and target_points is not null)
   )
 );
 create index if not exists tournaments_club_idx on public.tournaments(club_id);
@@ -102,6 +109,48 @@ create table if not exists public.americano_matches (
 );
 create index if not exists americano_matches_tournament_idx on public.americano_matches(tournament_id);
 
+-- ---------------------------------------------------------------------- liga
+create table if not exists public.league_rounds (
+  id uuid primary key default gen_random_uuid(),
+  tournament_id uuid not null references public.tournaments(id) on delete cascade,
+  round_no integer not null check (round_no >= 1),
+  unique (tournament_id, round_no)
+);
+
+create table if not exists public.league_matches (
+  id uuid primary key default gen_random_uuid(),
+  tournament_id uuid not null references public.tournaments(id) on delete cascade,
+  round_id uuid not null references public.league_rounds(id) on delete cascade,
+  round_no integer not null,
+  court_no integer not null default 1,
+  team_a jsonb not null,
+  team_b jsonb not null,
+  score_a integer check (score_a is null or (score_a >= 0 and score_a <= 99)),
+  score_b integer check (score_b is null or (score_b >= 0 and score_b <= 99))
+);
+create index if not exists league_matches_tournament_idx on public.league_matches(tournament_id);
+
+-- =============================================== migrasi untuk database lama
+-- Aman dijalankan ulang: hanya menambah kolom/constraint yang belum ada.
+alter table public.tournaments add column if not exists date_end date;
+alter table public.tournaments add column if not exists rounds_planned integer;
+
+do $$
+begin
+  alter table public.tournaments drop constraint if exists tournaments_type_check;
+  alter table public.tournaments add constraint tournaments_type_check
+    check (type in ('knockout', 'americano', 'liga'));
+exception when others then null;
+end $$;
+
+do $$
+begin
+  alter table public.tournaments drop constraint if exists tournaments_liga_lengkap;
+  alter table public.tournaments add constraint tournaments_liga_lengkap
+    check (type <> 'liga' or (format is not null and target_points is not null));
+exception when others then null;
+end $$;
+
 -- =========================================================== Row Level Security
 -- Tanpa login: role anon diberi akses penuh ke tabel-tabel aplikasi.
 alter table public.clubs enable row level security;
@@ -111,10 +160,13 @@ alter table public.participants enable row level security;
 alter table public.knockout_matches enable row level security;
 alter table public.americano_rounds enable row level security;
 alter table public.americano_matches enable row level security;
+alter table public.league_rounds enable row level security;
+alter table public.league_matches enable row level security;
 
 grant select, insert, update, delete on
   public.clubs, public.members, public.tournaments, public.participants,
-  public.knockout_matches, public.americano_rounds, public.americano_matches
+  public.knockout_matches, public.americano_rounds, public.americano_matches,
+  public.league_rounds, public.league_matches
 to anon;
 
 do $$
@@ -123,7 +175,8 @@ declare
 begin
   foreach t in array array[
     'clubs', 'members', 'tournaments', 'participants',
-    'knockout_matches', 'americano_rounds', 'americano_matches'
+    'knockout_matches', 'americano_rounds', 'americano_matches',
+    'league_rounds', 'league_matches'
   ]
   loop
     execute format('drop policy if exists "%s_akses_anon" on public.%I', t, t);

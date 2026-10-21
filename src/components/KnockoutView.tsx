@@ -479,7 +479,7 @@ export function KnockoutView({ turnamen }: { turnamen: Tournament }) {
   )
 }
 
-function PasanganBuilder({
+export function PasanganBuilder({
   anggota,
   pasangan,
   onTambah,

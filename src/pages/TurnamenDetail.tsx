@@ -3,6 +3,7 @@ import { useApp } from '../state/AppContext'
 import { Input, Kartu, Kolom, Konfirmasi, Kosong, Modal, Segmen, Tombol } from '../components/ui'
 import { KnockoutView } from '../components/KnockoutView'
 import { AmericanoView } from '../components/AmericanoView'
+import { LigaView } from '../components/LigaView'
 import { LangkahBerikutnya } from '../components/Panduan'
 import { lencanaStatus } from './Turnamen'
 import type { BestOf, KnockoutFormat, TargetPoints, Tournament } from '../lib/types'
@@ -37,7 +38,14 @@ export default function TurnamenDetail({
       )
       return { total: main.length, terisi: main.filter((m) => m.games.length > 0).length }
     }
-    const ms = snapshot.americano_matches.filter((m) => m.tournament_id === turnamen.id)
+    if (turnamen.type === 'americano') {
+      const ms = snapshot.americano_matches.filter((m) => m.tournament_id === turnamen.id)
+      return {
+        total: ms.length,
+        terisi: ms.filter((m) => m.score_a !== null && m.score_b !== null).length,
+      }
+    }
+    const ms = snapshot.league_matches.filter((m) => m.tournament_id === turnamen.id)
     return {
       total: ms.length,
       terisi: ms.filter((m) => m.score_a !== null && m.score_b !== null).length,
@@ -47,10 +55,12 @@ export default function TurnamenDetail({
   const [modalEdit, setModalEdit] = useState<{
     name: string
     date: string
+    date_end: string
     format: KnockoutFormat
     best_of: BestOf
     target_points: TargetPoints
     match_duration_min: string
+    rounds_planned: string
   } | null>(null)
   const [galat, setGalat] = useState<string | null>(null)
   const [konfirmasiHapus, setKonfirmasiHapus] = useState(false)
@@ -84,6 +94,21 @@ export default function TurnamenDetail({
       setGalat('Durasi harus 1-120 menit atau kosong.')
       return
     }
+    if (turnamen.type === 'liga') {
+      if (!modalEdit.date_end) {
+        setGalat('Tanggal selesai liga wajib diisi.')
+        return
+      }
+      if (modalEdit.date_end < modalEdit.date) {
+        setGalat('Tanggal selesai tidak boleh sebelum tanggal mulai.')
+        return
+      }
+    }
+    const ronde = modalEdit.rounds_planned.trim() === '' ? null : Number(modalEdit.rounds_planned)
+    if (ronde !== null && (!Number.isInteger(ronde) || ronde < 1 || ronde > 60)) {
+      setGalat('Jumlah ronde harus 1-60 atau kosong.')
+      return
+    }
     setGalat(null)
     const patch: Partial<Tournament> = { name: modalEdit.name.trim(), date: modalEdit.date }
     if (turnamen.type === 'knockout' && !adaJadwal) {
@@ -93,6 +118,14 @@ export default function TurnamenDetail({
     if (turnamen.type === 'americano' && !adaJadwal) {
       patch.target_points = modalEdit.target_points
       patch.match_duration_min = durasi
+    }
+    if (turnamen.type === 'liga') {
+      patch.date_end = modalEdit.date_end
+      if (!adaJadwal) {
+        patch.format = modalEdit.format
+        patch.target_points = modalEdit.target_points
+        patch.rounds_planned = ronde
+      }
     }
     const ok = await ubahTurnamen(turnamen.id, patch)
     if (ok) setModalEdit(null)
@@ -112,12 +145,17 @@ export default function TurnamenDetail({
           <div className="min-w-0">
             <h1 className="text-lg font-semibold text-slate-100">{turnamen.name}</h1>
             <p className="text-sm text-slate-400">
-              {formatTanggal(turnamen.date)} ·{' '}
               {turnamen.type === 'knockout'
-                ? `Knockout ${turnamen.format === 'double' ? 'Double' : 'Single'} · Best of ${turnamen.best_of}`
-                : `Americano · target ${turnamen.target_points} poin${
-                    turnamen.match_duration_min ? ` · ${turnamen.match_duration_min} menit` : ''
-                  }`}
+                ? `${formatTanggal(turnamen.date)} · Knockout ${
+                    turnamen.format === 'double' ? 'Double' : 'Single'
+                  } · Best of ${turnamen.best_of}`
+                : turnamen.type === 'americano'
+                  ? `${formatTanggal(turnamen.date)} · Americano · target ${turnamen.target_points} poin${
+                      turnamen.match_duration_min ? ` · ${turnamen.match_duration_min} menit` : ''
+                    }`
+                  : `${formatTanggal(turnamen.date)} – ${formatTanggal(turnamen.date_end)} · Liga ${
+                      turnamen.format === 'double' ? 'Double' : 'Single'
+                    } · target ${turnamen.target_points} poin`}
             </p>
           </div>
           {lencanaStatus(turnamen.status)}
@@ -132,10 +170,14 @@ export default function TurnamenDetail({
               setModalEdit({
                 name: turnamen.name,
                 date: turnamen.date,
+                date_end: turnamen.date_end ?? turnamen.date,
                 format: turnamen.format ?? 'single',
                 best_of: turnamen.best_of ?? 3,
                 target_points: turnamen.target_points ?? 21,
-                match_duration_min: turnamen.match_duration_min ? String(turnamen.match_duration_min) : '',
+                match_duration_min: turnamen.match_duration_min
+                  ? String(turnamen.match_duration_min)
+                  : '',
+                rounds_planned: turnamen.rounds_planned ? String(turnamen.rounds_planned) : '',
               })
             }}
           >
@@ -181,10 +223,14 @@ export default function TurnamenDetail({
                 <>
                   Belum ada pertandingan. Pilih peserta di bawah, lalu tekan <b>🎲 Undi bracket acak</b>.
                 </>
-              ) : (
+              ) : turnamen.type === 'americano' ? (
                 <>
                   Belum ada jadwal. Pilih pemain di bawah, lalu tekan{' '}
                   <b>🎲 Buat jadwal rotasi pasangan</b>.
+                </>
+              ) : (
+                <>
+                  Belum ada jadwal. Pilih peserta di bawah, lalu tekan <b>📅 Buat jadwal liga</b>.
                 </>
               )
             ) : (
@@ -215,8 +261,10 @@ export default function TurnamenDetail({
 
       {turnamen.type === 'knockout' ? (
         <KnockoutView turnamen={turnamen} />
-      ) : (
+      ) : turnamen.type === 'americano' ? (
         <AmericanoView turnamen={turnamen} />
+      ) : (
+        <LigaView turnamen={turnamen} />
       )}
 
       <Modal
@@ -241,7 +289,7 @@ export default function TurnamenDetail({
             maxLength={80}
           />
         </Kolom>
-        <Kolom label="Tanggal" wajib>
+        <Kolom label={turnamen.type === 'liga' ? 'Tanggal mulai' : 'Tanggal'} wajib>
           <Input
             type="date"
             value={modalEdit?.date ?? ''}
@@ -249,12 +297,24 @@ export default function TurnamenDetail({
           />
         </Kolom>
 
+        {turnamen.type === 'liga' && (
+          <Kolom label="Tanggal selesai" wajib>
+            <Input
+              type="date"
+              value={modalEdit?.date_end ?? ''}
+              onChange={(e) => modalEdit && setModalEdit({ ...modalEdit, date_end: e.target.value })}
+            />
+          </Kolom>
+        )}
+
         {adaJadwal ? (
           <p className="rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-slate-400">
-            Format, jumlah game, dan target poin tidak bisa diubah karena jadwal/pertandingan sudah dibuat.
+            Format{ turnamen.type === 'liga' ? ', target poin, dan jumlah ronde' : ', jumlah game, dan target poin' } tidak bisa diubah karena jadwal/pertandingan sudah dibuat.
             {turnamen.type === 'knockout'
               ? ' Pakai "Undi ulang bracket" kalau ingin mengubah susunan peserta.'
-              : ' Pakai "Acak ulang jadwal" kalau ingin mengganti daftar pemain.'}
+              : turnamen.type === 'americano'
+                ? ' Pakai "Acak ulang jadwal" kalau ingin mengganti daftar pemain.'
+                : ' Pakai "Acak ulang jadwal" di halaman liga kalau ingin mengganti peserta atau jumlah ronde.'}
           </p>
         ) : turnamen.type === 'knockout' ? (
           <>
@@ -279,7 +339,7 @@ export default function TurnamenDetail({
               />
             </Kolom>
           </>
-        ) : (
+        ) : turnamen.type === 'americano' ? (
           <>
             <Kolom label="Target poin" wajib>
               <Segmen<TargetPoints>
@@ -302,6 +362,45 @@ export default function TurnamenDetail({
                   setModalEdit({ ...modalEdit, match_duration_min: e.target.value.replace(/[^0-9]/g, '') })
                 }
                 placeholder="mis. 10"
+              />
+            </Kolom>
+          </>
+        ) : (
+          <>
+            <Kolom label="Format peserta" wajib>
+              <Segmen<KnockoutFormat>
+                nilai={modalEdit?.format ?? 'single'}
+                opsi={[
+                  { nilai: 'single', label: 'Single' },
+                  { nilai: 'double', label: 'Double' },
+                ]}
+                onPilih={(v) => modalEdit && setModalEdit({ ...modalEdit, format: v })}
+              />
+            </Kolom>
+            <Kolom label="Target poin" wajib>
+              <Segmen<TargetPoints>
+                nilai={modalEdit?.target_points ?? 21}
+                opsi={[
+                  { nilai: 11, label: '11' },
+                  { nilai: 15, label: '15' },
+                  { nilai: 21, label: '21' },
+                  { nilai: 24, label: '24' },
+                ]}
+                onPilih={(v) => modalEdit && setModalEdit({ ...modalEdit, target_points: v })}
+              />
+            </Kolom>
+            <Kolom
+              label="Jumlah ronde"
+              petunjuk="Kosongkan = semua peserta bertemu sekali."
+            >
+              <Input
+                inputMode="numeric"
+                value={modalEdit?.rounds_planned ?? ''}
+                onChange={(e) =>
+                  modalEdit &&
+                  setModalEdit({ ...modalEdit, rounds_planned: e.target.value.replace(/[^0-9]/g, '') })
+                }
+                placeholder="otomatis"
               />
             </Kolom>
           </>

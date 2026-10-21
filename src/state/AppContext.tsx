@@ -24,6 +24,12 @@ import type {
 import { pilihBackend, type Backend, type InfoPenyimpanan, type Op } from '../lib/storage'
 import { snapshotKosong, terapkanKeSnapshot } from '../lib/storage/mirror'
 import { generateSchedule, suggestRounds } from '../lib/americano'
+import {
+  buatJadwalLiga as susunJadwalLiga,
+  ligaSelesai,
+  rondePenuhLiga,
+  validasiSkorLiga,
+} from '../lib/liga'
 import { drawBracket, pemenangTurnamen, recompute, validateGames } from '../lib/knockout'
 import { hitungStatistikKlub, type StatAnggota } from '../lib/stats'
 import { uid } from '../lib/utils'
@@ -94,6 +100,18 @@ interface AppContextValue {
     memberIds: string[],
     jumlahRonde: number,
     acakUlang?: boolean,
+  ) => Promise<boolean>
+  buatJadwalLiga: (
+    t: Tournament,
+    peserta: DataPeserta[],
+    jumlahRonde: number | null,
+    acakUlang?: boolean,
+  ) => Promise<boolean>
+  simpanSkorLiga: (
+    t: Tournament,
+    matchId: string,
+    skorA: number | null,
+    skorB: number | null,
   ) => Promise<boolean>
   simpanSkorAmericano: (
     t: Tournament,
@@ -360,9 +378,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         name: nama,
         date: d.date,
         type: d.type,
-        format: d.type === 'knockout' ? d.format : null,
+        format: d.type === 'americano' ? null : d.format,
         best_of: d.type === 'knockout' ? d.best_of : null,
-        target_points: d.type === 'americano' ? d.target_points : null,
+        target_points: d.type === 'knockout' ? null : d.target_points,
         match_duration_min: d.type === 'americano' ? d.match_duration_min : null,
         status: 'draft',
         created_at: new Date().toISOString(),
@@ -573,6 +591,128 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [jalankan, snapshot.americano_matches],
   )
 
+  // ------------------------------------------------------------------ liga
+  const buatJadwalLiga = useCallback<AppContextValue['buatJadwalLiga']>(
+    async (t, peserta, jumlahRonde, acakUlang = false) => {
+      if (peserta.length < 2) {
+        pesanRef.current('Minimal 2 peserta untuk membuat jadwal liga.', 'error')
+        return false
+      }
+      if (t.format === 'double') {
+        const dipakai = new Set<string>()
+        for (const p of peserta) {
+          if (p.member_ids.length !== 2) {
+            pesanRef.current(`Pasangan "${p.label}" harus berisi tepat 2 anggota.`, 'error')
+            return false
+          }
+          for (const id of p.member_ids) {
+            if (dipakai.has(id)) {
+              pesanRef.current('Ada anggota yang masuk ke dua pasangan berbeda. Perbaiki dulu.', 'error')
+              return false
+            }
+            dipakai.add(id)
+          }
+        }
+      }
+      const penuh = rondePenuhLiga(peserta.length)
+      const jumlah = jumlahRonde && jumlahRonde > 0 ? Math.min(jumlahRonde, penuh) : penuh
+      const daftar = peserta.map((p) => ({ ...p, id: uid() }))
+      const petaAnggota = new Map(daftar.map((p) => [p.id, p.member_ids]))
+      const plans = susunJadwalLiga(
+        daftar.map((p) => p.id),
+        jumlah,
+      )
+
+      const ops: Op[] = []
+      if (acakUlang) {
+        for (const m of snapshot.league_matches)
+          if (m.tournament_id === t.id) ops.push({ table: 'league_matches', type: 'delete', id: m.id })
+        for (const r of snapshot.league_rounds)
+          if (r.tournament_id === t.id) ops.push({ table: 'league_rounds', type: 'delete', id: r.id })
+        for (const p of snapshot.participants)
+          if (p.tournament_id === t.id) ops.push({ table: 'participants', type: 'delete', id: p.id })
+      }
+
+      for (const p of daftar) {
+        ops.push({
+          table: 'participants',
+          type: 'insert',
+          row: { id: p.id, tournament_id: t.id, label: p.label, member_ids: p.member_ids },
+        })
+      }
+
+      for (const plan of plans) {
+        const rondeId = uid()
+        ops.push({
+          table: 'league_rounds',
+          type: 'insert',
+          row: { id: rondeId, tournament_id: t.id, round_no: plan.roundNo },
+        })
+        for (const c of plan.courts) {
+          ops.push({
+            table: 'league_matches',
+            type: 'insert',
+            row: {
+              id: uid(),
+              tournament_id: t.id,
+              round_id: rondeId,
+              round_no: plan.roundNo,
+              court_no: c.courtNo,
+              team_a: petaAnggota.get(c.teamA[0]) ?? [],
+              team_b: petaAnggota.get(c.teamB[0]) ?? [],
+              score_a: null,
+              score_b: null,
+            },
+          })
+        }
+      }
+
+      ops.push({ table: 'tournaments', type: 'update', id: t.id, patch: { status: 'ongoing' } })
+      return jalankan(
+        ops,
+        acakUlang ? 'Jadwal liga dibuat ulang.' : `Jadwal liga dibuat: ${plans.length} ronde.`,
+      )
+    },
+    [jalankan, snapshot.league_matches, snapshot.league_rounds, snapshot.participants],
+  )
+
+  const simpanSkorLiga = useCallback<AppContextValue['simpanSkorLiga']>(
+    async (t, matchId, skorA, skorB) => {
+      if ((skorA === null) !== (skorB === null)) {
+        pesanRef.current('Isi kedua skor, atau kosongkan keduanya untuk membatalkan.', 'error')
+        return false
+      }
+      if (skorA !== null && skorB !== null) {
+        const cek = validasiSkorLiga(skorA, skorB, t.target_points ?? 21)
+        if (!cek.ok) {
+          pesanRef.current(cek.error ?? 'Skor tidak valid.', 'error')
+          return false
+        }
+      }
+      const ops: Op[] = [
+        {
+          table: 'league_matches',
+          type: 'update',
+          id: matchId,
+          patch: { score_a: skorA, score_b: skorB },
+        },
+      ]
+      const semua = snapshot.league_matches
+        .filter((m) => m.tournament_id === t.id)
+        .map((m) => (m.id === matchId ? { ...m, score_a: skorA, score_b: skorB } : m))
+      if (ligaSelesai(semua) && t.status !== 'finished') {
+        ops.push({ table: 'tournaments', type: 'update', id: t.id, patch: { status: 'finished' } })
+      } else if (!ligaSelesai(semua) && t.status === 'finished') {
+        ops.push({ table: 'tournaments', type: 'update', id: t.id, patch: { status: 'ongoing' } })
+      }
+      return jalankan(
+        ops,
+        ligaSelesai(semua) ? 'Semua skor lengkap — juara liga sudah ditentukan!' : 'Skor tersimpan.',
+      )
+    },
+    [jalankan, snapshot.league_matches],
+  )
+
   const nilai: AppContextValue = {
     siap,
     memuat,
@@ -602,6 +742,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     simpanHasil,
     hapusHasil,
     buatJadwalAmericano,
+    buatJadwalLiga,
+    simpanSkorLiga,
     simpanSkorAmericano,
   }
 

@@ -7,25 +7,30 @@ import type { BestOf, KnockoutFormat, TargetPoints, Tournament, TournamentStatus
 import { formatTanggal, todayISO, uid } from '../lib/utils'
 import { pemenangTurnamen } from '../lib/knockout'
 import { americanoStandings } from '../lib/americano'
+import { hitungKlasemenLiga, juaraLiga } from '../lib/liga'
 
 interface FormTurnamen {
   name: string
   date: string
+  date_end: string
   type: Tournament['type']
   format: KnockoutFormat
   best_of: BestOf
   target_points: TargetPoints
   match_duration_min: string
+  rounds_planned: string
 }
 
 const FORM_AWAL: FormTurnamen = {
   name: '',
   date: todayISO(),
+  date_end: todayISO(),
   type: 'knockout',
   format: 'single',
   best_of: 3,
   target_points: 21,
   match_duration_min: '',
+  rounds_planned: '',
 }
 
 export function lencanaStatus(status: TournamentStatus) {
@@ -58,23 +63,33 @@ export default function Turnamen({
 
   const infoTurnamen = (t: Tournament) => {
     const peserta = snapshot.participants.filter((p) => p.tournament_id === t.id)
-    const jumlahMatch = snapshot.knockout_matches.filter((m) => m.tournament_id === t.id).length +
-      snapshot.americano_matches.filter((m) => m.tournament_id === t.id).length
+    const jumlahMatch =
+      snapshot.knockout_matches.filter((m) => m.tournament_id === t.id).length +
+      snapshot.americano_matches.filter((m) => m.tournament_id === t.id).length +
+      snapshot.league_matches.filter((m) => m.tournament_id === t.id).length
     let juara: string | null = null
     if (t.status === 'finished') {
       if (t.type === 'knockout') {
         const ms = snapshot.knockout_matches.filter((m) => m.tournament_id === t.id)
         const id = pemenangTurnamen(ms, t.best_of ?? 3)
         juara = peserta.find((p) => p.id === id)?.label ?? null
-      } else {
+      } else if (t.type === 'americano') {
         const ms = snapshot.americano_matches.filter((m) => m.tournament_id === t.id)
         const pemain = new Set<string>()
         for (const m of ms) for (const id of [...m.team_a, ...m.team_b]) pemain.add(id)
         const klasemen = americanoStandings([...pemain], ms)
         const juaraIds = klasemen.filter((k) => k.rank === 1 && k.matches > 0).map((k) => k.memberId)
-        juara = juaraIds
-          .map((id) => snapshot.members.find((m) => m.id === id)?.name ?? '?')
-          .join(' & ') || null
+        juara =
+          juaraIds.map((id) => snapshot.members.find((m) => m.id === id)?.name ?? '?').join(' & ') ||
+          null
+      } else {
+        const ms = snapshot.league_matches.filter((m) => m.tournament_id === t.id)
+        const klasemen = hitungKlasemenLiga(
+          peserta,
+          ms,
+          (id) => snapshot.members.find((m) => m.id === id)?.name ?? id,
+        )
+        juara = juaraLiga(klasemen.utama).map((k) => k.nama).join(' & ') || null
       }
     }
     return { peserta, jumlahMatch, juara }
@@ -99,9 +114,22 @@ export default function Turnamen({
       setGalat('Tanggal wajib diisi.')
       return
     }
+    if (form.type === 'liga' && !form.date_end) {
+      setGalat('Tanggal selesai liga wajib diisi.')
+      return
+    }
+    if (form.type === 'liga' && form.date_end < form.date) {
+      setGalat('Tanggal selesai tidak boleh sebelum tanggal mulai.')
+      return
+    }
     const durasi = form.match_duration_min.trim() === '' ? null : Number(form.match_duration_min)
     if (durasi !== null && (!Number.isInteger(durasi) || durasi < 1 || durasi > 120)) {
       setGalat('Durasi pertandingan harus 1-120 menit (atau kosongkan).')
+      return
+    }
+    const ronde = form.rounds_planned.trim() === '' ? null : Number(form.rounds_planned)
+    if (ronde !== null && (!Number.isInteger(ronde) || ronde < 1 || ronde > 60)) {
+      setGalat('Jumlah ronde harus 1-60 (atau kosongkan untuk semua peserta bertemu sekali).')
       return
     }
     setGalat(null)
@@ -112,12 +140,12 @@ export default function Turnamen({
       name: form.name,
       date: form.date,
       type: form.type,
-      format: form.type === 'knockout' ? form.format : null,
+      format: form.type === 'americano' ? null : form.format,
       best_of: form.type === 'knockout' ? form.best_of : null,
-      target_points: form.type === 'americano' ? form.target_points : null,
+      target_points: form.type === 'knockout' ? null : form.target_points,
       match_duration_min: form.type === 'americano' ? durasi : null,
-      date_end: null,
-      rounds_planned: null,
+      date_end: form.type === 'liga' ? form.date_end : null,
+      rounds_planned: form.type === 'liga' ? ronde : null,
     })
     if (ok) {
       setForm(null)
@@ -164,9 +192,9 @@ export default function Turnamen({
           <b>Americano</b> — pasangan dirotasi tiap ronde, semua orang main banyak, peringkat dihitung
           dari poin individu.
         </p>
-        <p className="text-brand-50/70">
-          <b>Liga</b> — semua peserta saling bertemu dan mengumpulkan poin sepanjang liga (sedang
-          disiapkan).
+        <p>
+          <b>Liga</b> — semua peserta saling bertemu dan mengumpulkan poin sepanjang liga; juara =
+          total poin tertinggi.
         </p>
       </Petunjuk>
 
@@ -201,23 +229,37 @@ export default function Turnamen({
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-slate-100">{t.name}</p>
-                    <p className="text-xs text-slate-400">{formatTanggal(t.date)}</p>
+                    <p className="text-xs text-slate-400">
+                      {t.type === 'liga'
+                        ? `${formatTanggal(t.date)} – ${formatTanggal(t.date_end)}`
+                        : formatTanggal(t.date)}
+                    </p>
                   </div>
                   {lencanaStatus(t.status)}
                 </div>
                 <div className="mt-2 flex flex-wrap gap-1.5">
-                  <Lencana warna={t.type === 'knockout' ? 'biru' : 'kuning'}>
-                    {t.type === 'knockout' ? 'Knockout' : 'Americano'}
+                  <Lencana
+                    warna={t.type === 'knockout' ? 'biru' : t.type === 'americano' ? 'kuning' : 'merah'}
+                  >
+                    {t.type === 'knockout' ? 'Knockout' : t.type === 'americano' ? 'Americano' : 'Liga'}
                   </Lencana>
-                  {t.type === 'knockout' ? (
+                  {t.type === 'knockout' && (
                     <>
                       <Lencana>{t.format === 'double' ? 'Double' : 'Single'}</Lencana>
                       <Lencana>Best of {t.best_of}</Lencana>
                     </>
-                  ) : (
+                  )}
+                  {t.type === 'americano' && (
                     <>
                       <Lencana>Target {t.target_points} poin</Lencana>
                       {t.match_duration_min && <Lencana>{t.match_duration_min} menit</Lencana>}
+                    </>
+                  )}
+                  {t.type === 'liga' && (
+                    <>
+                      <Lencana>{t.format === 'double' ? 'Double' : 'Single'}</Lencana>
+                      <Lencana>Target {t.target_points} poin</Lencana>
+                      {t.rounds_planned && <Lencana>{t.rounds_planned} ronde</Lencana>}
                     </>
                   )}
                 </div>
@@ -272,7 +314,7 @@ export default function Turnamen({
             maxLength={80}
           />
         </Kolom>
-        <Kolom label="Tanggal" wajib>
+        <Kolom label={form?.type === 'liga' ? 'Tanggal mulai' : 'Tanggal'} wajib>
           <Input
             type="date"
             value={form?.date ?? ''}
@@ -285,6 +327,7 @@ export default function Turnamen({
             opsi={[
               { nilai: 'knockout' as const, label: 'Knockout' },
               { nilai: 'americano' as const, label: 'Americano' },
+              { nilai: 'liga' as const, label: 'Liga' },
             ]}
             onPilih={(v) => form && setForm({ ...form, type: v })}
           />
@@ -293,7 +336,9 @@ export default function Turnamen({
         <p className="rounded-xl border border-white/10 bg-white/5 p-2.5 text-xs text-slate-300">
           {form?.type === 'americano'
             ? 'Pasangan dirotasi setiap ronde. Peringkat dihitung dari total poin individu, bukan jumlah kemenangan.'
-            : 'Sistem gugur: kalah sekali langsung keluar. Bye dibuat otomatis kalau jumlah peserta bukan pangkat dua.'}
+            : form?.type === 'liga'
+              ? 'Semua peserta saling bertemu (round-robin). Juara = total poin tertinggi; menang tidak menentukan peringkat.'
+              : 'Sistem gugur: kalah sekali langsung keluar. Bye dibuat otomatis kalau jumlah peserta bukan pangkat dua.'}
         </p>
 
         {form === null ? null : form.type === 'knockout' ? (
@@ -319,7 +364,7 @@ export default function Turnamen({
               />
             </Kolom>
           </>
-        ) : (
+        ) : form.type === 'americano' ? (
           <>
             <Kolom label="Target poin per pertandingan" wajib>
               <Segmen<TargetPoints>
@@ -341,6 +386,51 @@ export default function Turnamen({
                   setForm({ ...form, match_duration_min: e.target.value.replace(/[^0-9]/g, '') })
                 }
                 placeholder="mis. 10"
+              />
+            </Kolom>
+          </>
+        ) : (
+          <>
+            <Kolom label="Tanggal selesai" wajib petunjuk="Rentang pelaksanaan liga.">
+              <Input
+                type="date"
+                value={form.date_end}
+                onChange={(e) => setForm({ ...form, date_end: e.target.value })}
+              />
+            </Kolom>
+            <Kolom label="Format peserta" wajib>
+              <Segmen<KnockoutFormat>
+                nilai={form.format}
+                opsi={[
+                  { nilai: 'single', label: 'Single' },
+                  { nilai: 'double', label: 'Double' },
+                ]}
+                onPilih={(v) => setForm({ ...form, format: v })}
+              />
+            </Kolom>
+            <Kolom label="Target poin per pertandingan" wajib>
+              <Segmen<TargetPoints>
+                nilai={form.target_points}
+                opsi={[
+                  { nilai: 11, label: '11' },
+                  { nilai: 15, label: '15' },
+                  { nilai: 21, label: '21' },
+                  { nilai: 24, label: '24' },
+                ]}
+                onPilih={(v) => setForm({ ...form, target_points: v })}
+              />
+            </Kolom>
+            <Kolom
+              label="Jumlah ronde"
+              petunjuk="Kosongkan = semua peserta bertemu sekali (jumlah ronde dihitung otomatis)."
+            >
+              <Input
+                inputMode="numeric"
+                value={form.rounds_planned}
+                onChange={(e) =>
+                  setForm({ ...form, rounds_planned: e.target.value.replace(/[^0-9]/g, '') })
+                }
+                placeholder="otomatis"
               />
             </Kolom>
           </>
