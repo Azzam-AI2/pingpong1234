@@ -4,3 +4,6 @@ dist
 .env.local
 *.local
 .DS_Store
+
+# cadangan database (berisi data pribadi anggota) — jangan di-commit
+backup/
