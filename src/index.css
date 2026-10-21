@@ -68,6 +68,23 @@ h3 {
   letter-spacing: -0.02em;
 }
 
+/*
+  Tailwind v4 tidak lagi memberi `cursor: pointer` pada <button> (bawaannya panah),
+  jadi semua kontrol yang bisa diklik diatur di sini supaya kursor berubah saat di-hover.
+*/
+button:not(:disabled),
+[role='button']:not(:disabled),
+select:not(:disabled),
+summary {
+  cursor: pointer;
+}
+
+button:disabled,
+[role='button'][aria-disabled='true'],
+select:disabled {
+  cursor: not-allowed;
+}
+
 @keyframes pop-in {
   0% { transform: scale(0.6); opacity: 0; }
   60% { transform: scale(1.08); opacity: 1; }
