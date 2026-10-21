@@ -40,7 +40,7 @@ dipisah dari UI dan database.
 | 3 | Input skor **bulu tangkis** (21/deuce/30) di modal pertandingan & klasemen liga | ✅ selesai (commit `84a1649`) |
 | 4 | Input skor **padel tennis** per set + label "Set 1/2/3" di modal & "Jumlah set" saat buat turnamen | ✅ selesai (commit `ceb8668`) |
 | 5 | **Americano padel**: rotasi 2v2 per meja, larangan pemain dobel per ronde, target poin dari konfigurasi kompetisi | ✅ mesin + validasi teruji; UI Americano memakai komponen yang sama |
-| 6 | Simpan konfigurasi kompetisi (`tournaments.settings`: target/tiebreak/goldenPoint) + validasi pemenang di server (RPC) saat RLS diketatkan | ⏳ belum |
+| 6 | Konfigurasi per kompetisi: `tournaments.settings` (tiebreak, golden point, target) dibaca mesin skor + form turnamen padel | ✅ klien selesai (commit `84bf4dc`); ⏳ validasi pemenang di server menyusul saat RLS diketatkan |
 
 ### Catatan skema untuk tahap 6
 
