@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useApp } from '../state/AppContext'
-import { Avatar, Kartu, Lencana, Konfirmasi, Tombol } from '../components/ui'
+import { Avatar, Kartu, Lencana, Konfirmasi } from '../components/ui'
 import { Ikon } from '../components/Ikon'
 import { ModalKlub, type DataKlubForm } from '../components/KlubForm'
 import { MulaiDariSini } from '../components/Panduan'
@@ -154,21 +154,7 @@ export function Dashboard({ pindah }: { pindah?: (t: Target) => void }) {
       </section>
 
       <section className="space-y-4 sm:space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-bold tracking-tight text-ink sm:text-xl">
-            Ringkasan klub
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            <a href={keHash({ halaman: 'turnamen', klubId, aksi: 'baru-turnamen' })}>
-              <Tombol kecil>+ Turnamen</Tombol>
-            </a>
-            <a href={keHash({ halaman: 'anggota', klubId, aksi: 'baru-anggota' })}>
-              <Tombol kecil variasi="sekunder">
-                + Anggota
-              </Tombol>
-            </a>
-          </div>
-        </div>
+        <h2 className="text-lg font-bold tracking-tight text-ink sm:text-xl">Ringkasan klub</h2>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
           <Stat

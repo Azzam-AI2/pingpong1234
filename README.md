@@ -19,7 +19,7 @@ masuk ke sebuah klub, semua menu bekerja di dalam klub itu.
 | Layar | Isi |
 | --- | --- |
 | **Daftar klub** (`#/`) | Buat/edit/hapus klub, lihat ringkasan tiap klub (anggota, turnamen, juara terbaru), tombol **Masuk klub** |
-| **Beranda klub** (`#/klub/<id>`) | Header klub (logo, nama, tanggal dibuat) + tombol **Edit/Hapus klub**, lalu **dashboard klub**: ringkasan angka, tombol cepat + Turnamen/+ Anggota, daftar turnamen berjalan dengan progres skor, juara terbaru, dan top pemain. Navigasi lewat menu Beranda/Anggota/Turnamen/Peringkat. Panduan 3 langkah hanya muncul selama klub masih kosong |
+| **Beranda klub** (`#/klub/<id>`) | Header klub (logo, nama, tanggal dibuat) + tombol **Edit/Hapus klub**, lalu **dashboard klub**: ringkasan angka, daftar turnamen berjalan dengan progres skor, juara terbaru, dan top pemain. Navigasi lewat menu Beranda/Anggota/Turnamen/Peringkat. Panduan 3 langkah hanya muncul selama klub masih kosong |
 | **Anggota** (`#/klub/<id>/anggota`) | Daftar anggota satu kartu: pencarian nama, saring gender/status, urut nama/tanggal, baris berisi avatar + identitas + status **Aktif/Nonaktif**, aksi **Edit / Duplikat / Hapus** per baris, dan peringatan saat menghapus anggota yang sudah dipakai turnamen |
 | **Turnamen** (`#/klub/<id>/turnamen`) | Daftar + filter status, pembuatan **Knockout / Americano / Liga**, halaman detail turnamen |
 | **Leaderboard** (`#/klub/<id>/leaderboard`) | Statistik pemain klub: jumlah pertandingan, menang/kalah, win rate, gelar, riwayat — **terpisah** Knockout dan Americano |
