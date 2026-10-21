@@ -8,6 +8,7 @@ import { formatTanggal, todayISO, uid } from '../lib/utils'
 import { pemenangTurnamen } from '../lib/knockout'
 import { americanoStandings } from '../lib/americano'
 import { hitungKlasemenLiga, juaraLiga } from '../lib/liga'
+import { formatTersedia, profilOlahraga } from '../lib/sports'
 
 interface FormTurnamen {
   name: string
@@ -324,13 +325,16 @@ export default function Turnamen({
         <Kolom label="Jenis turnamen" wajib>
           <Segmen
             nilai={form?.type ?? 'knockout'}
-            opsi={[
-              { nilai: 'knockout' as const, label: 'Knockout' },
-              { nilai: 'americano' as const, label: 'Americano' },
-              { nilai: 'liga' as const, label: 'Liga' },
-            ]}
+            opsi={formatTersedia(klubAktif?.sport_slug).map((f) => ({
+              nilai: f,
+              label: f === 'knockout' ? 'Knockout' : f === 'liga' ? 'Liga' : 'Americano',
+            }))}
             onPilih={(v) => form && setForm({ ...form, type: v })}
           />
+          <p className="mt-1 text-xs text-ink-muted">
+            Cabang {profilOlahraga(klubAktif?.sport_slug).nama}:{' '}
+            {profilOlahraga(klubAktif?.sport_slug).keterangan}
+          </p>
         </Kolom>
 
         <p className="rounded-xl border border-ink/12 bg-ink/6 p-2.5 text-xs text-ink-soft">

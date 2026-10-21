@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useApp } from '../state/AppContext'
-import { Input, InputGambar, Kolom, Modal, Tombol } from './ui'
+import { Input, InputGambar, Kolom, Modal, Pilih, Tombol } from './ui'
 import { validasiNama } from '../lib/utils'
+import { DAFTAR_OLAHRAGA } from '../lib/sports'
 
 export interface DataKlubForm {
   id?: string
   name: string
   logo_url: string | null
+  sport_slug?: string
 }
 
 /**
@@ -79,6 +81,24 @@ export function ModalKlub({
           maxLength={60}
         />
       </Kolom>
+      {!form?.id && (
+        <Kolom
+          label="Jenis olahraga"
+          wajib
+          petunjuk="Menentukan format kompetisi & aturan skor. Tidak bisa diubah setelah ada kompetisi."
+        >
+          <Pilih
+            value={form?.sport_slug ?? 'table_tennis'}
+            onChange={(e) => form && setForm({ ...form, sport_slug: e.target.value })}
+          >
+            {DAFTAR_OLAHRAGA.map((o) => (
+              <option key={o.slug} value={o.slug}>
+                {o.ikon} {o.nama}
+              </option>
+            ))}
+          </Pilih>
+        </Kolom>
+      )}
       <InputGambar
         label="Logo klub"
         nilai={form?.logo_url ?? null}

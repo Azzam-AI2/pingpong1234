@@ -14,6 +14,8 @@ export interface Club {
   name: string
   logo_url: string | null
   created_at: string
+  /** Cabang olahraga klub: Mulai sekarang default 'table_tennis'. */
+  sport_slug?: string | null
 }
 
 export interface Member {

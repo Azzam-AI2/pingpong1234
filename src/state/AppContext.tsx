@@ -78,7 +78,12 @@ interface AppContextValue {
   muatUlang: () => Promise<void>
   tutupToast: (id: string) => void
   pesan: (teks: string, jenis?: JenisToast) => void
-  simpanKlub: (d: { id?: string; name: string; logo_url: string | null }) => Promise<string | null>
+  simpanKlub: (d: {
+    id?: string
+    name: string
+    logo_url: string | null
+    sport_slug?: string | null
+  }) => Promise<string | null>
   hapusKlub: (id: string) => Promise<boolean>
   simpanAnggota: (d: {
     id?: string
@@ -262,6 +267,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         name: nama,
         logo_url: d.logo_url,
         created_at: new Date().toISOString(),
+        // Jenis olahraga hanya ditentukan saat klub dibuat (tidak diubah lewat edit).
+        sport_slug: d.sport_slug ?? 'table_tennis',
       }
       const ok = await jalankan([{ table: 'clubs', type: 'insert', row }], 'Klub ditambahkan.')
       if (ok) pilihKlub(row.id)
