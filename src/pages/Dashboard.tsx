@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useApp } from '../state/AppContext'
 import { Avatar, Kartu, Lencana, Konfirmasi, Tombol } from '../components/ui'
-import { Ikon, type NamaIkon } from '../components/Ikon'
+import { Ikon } from '../components/Ikon'
 import { ModalKlub, type DataKlubForm } from '../components/KlubForm'
 import { MulaiDariSini } from '../components/Panduan'
 import { keHash, type Target } from '../lib/router'
@@ -13,34 +13,6 @@ const JENIS: Record<string, string> = {
   knockout: 'Knockout',
   liga: 'Liga',
   americano: 'Americano',
-}
-
-/** Satu kartu navigasi besar: ikon lalu judul lalu keterangan bertanda panah. */
-function KartuMenu({
-  href,
-  ikon,
-  judul,
-  keterangan,
-}: {
-  href: string
-  ikon: NamaIkon
-  judul: string
-  keterangan: string
-}) {
-  return (
-    <a
-      href={href}
-      className="group flex flex-col rounded-2xl border border-ink/12 bg-surface p-5 transition-colors hover:border-brand-600/40 hover:bg-brand-500/[0.04] sm:p-7"
-    >
-      <span className="text-brand-700">
-        <Ikon nama={ikon} />
-      </span>
-      <span className="mt-5 text-lg font-bold tracking-tight text-ink sm:mt-6 sm:text-xl">
-        {judul}
-      </span>
-      <span className="mt-1.5 text-sm text-ink-muted sm:text-[15px]">{keterangan}</span>
-    </a>
-  )
 }
 
 function Stat({
@@ -65,8 +37,8 @@ function Stat({
 
 /**
  * Halaman klub: header klub (logo, nama, tanggal dibuat, tombol Edit/Hapus),
- * tiga kartu navigasi besar, lalu dashboard klub (ringkasan, turnamen berjalan,
- * juara terbaru, dan pemain teratas).
+ * lalu dashboard klub - ringkasan angka, turnamen berjalan, juara terbaru,
+ * dan pemain teratas.
  */
 export function Dashboard({ pindah }: { pindah?: (t: Target) => void }) {
   const { snapshot, klubAktif, hapusKlub } = useApp()
@@ -179,27 +151,6 @@ export function Dashboard({ pindah }: { pindah?: (t: Target) => void }) {
             Hapus
           </button>
         </div>
-      </section>
-
-      <section className="grid gap-4 sm:grid-cols-3 sm:gap-6">
-        <KartuMenu
-          href={keHash({ halaman: 'anggota', klubId })}
-          ikon="anggota"
-          judul="Anggota"
-          keterangan="Kelola direktori pemain →"
-        />
-        <KartuMenu
-          href={keHash({ halaman: 'turnamen', klubId })}
-          ikon="turnamen"
-          judul="Turnamen"
-          keterangan="Knockout, liga & bagan →"
-        />
-        <KartuMenu
-          href={keHash({ halaman: 'leaderboard', klubId })}
-          ikon="peringkat"
-          judul="Peringkat"
-          keterangan="Leaderboard & statistik pemain →"
-        />
       </section>
 
       <section className="space-y-4 sm:space-y-5">
