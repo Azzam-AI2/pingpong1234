@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useApp } from '../state/AppContext'
-import { Kartu, Kosong, Lencana, Tombol, Avatar } from '../components/ui'
+import { Avatar, Kartu, Lencana, Tombol } from '../components/ui'
+import { MulaiDariSini } from '../components/Panduan'
 import { keHash } from '../lib/router'
 import { formatTanggal } from '../lib/utils'
 import { ringkasDashboard } from '../lib/stats'
@@ -14,18 +15,18 @@ function Stat({ label, nilai, warna }: { label: string; nilai: string | number; 
   )
 }
 
+/** Beranda klub: ringkasan dan pintasan kerja harian. */
 export function Dashboard() {
-  const { snapshot, klubAktif, pilihKlub } = useApp()
+  const { snapshot, klubAktif } = useApp()
+  const klubId = klubAktif?.id
 
   const data = useMemo(() => {
-    if (!klubAktif) {
-      return ringkasDashboard(snapshot.clubs, [], [], [], [], [])
-    }
+    if (!klubAktif) return ringkasDashboard([], [], [], [], [], [])
     const anggota = snapshot.members.filter((m) => m.club_id === klubAktif.id)
     const turnamen = snapshot.tournaments.filter((t) => t.club_id === klubAktif.id)
     const idsTurnamen = new Set(turnamen.map((t) => t.id))
     return ringkasDashboard(
-      snapshot.clubs,
+      [klubAktif],
       anggota,
       turnamen,
       snapshot.participants.filter((p) => idsTurnamen.has(p.tournament_id)),
@@ -34,44 +35,83 @@ export function Dashboard() {
     )
   }, [snapshot, klubAktif])
 
-  if (!snapshot.clubs.length) {
-    return (
-      <div className="space-y-4">
-        <Kosong
-          judul="Belum ada klub"
-          pesan="Mulai dengan membuat klub, lalu tambahkan anggotanya. Turnamen bisa dibuat setelah ada peserta."
-          aksi={
-            <>
-              <a href={keHash('klub')}>
-                <Tombol>Buat klub pertama</Tombol>
-              </a>
-            </>
-          }
-        />
-      </div>
-    )
-  }
+  const berjalan = useMemo(() => {
+    if (!klubAktif) return []
+    return snapshot.tournaments
+      .filter((t) => t.club_id === klubAktif.id && t.status !== 'finished')
+      .slice()
+      .sort((a, b) => (a.date < b.date ? 1 : -1))
+      .slice(0, 3)
+      .map((t) => {
+        if (t.type === 'knockout') {
+          const main = snapshot.knockout_matches.filter(
+            (m) => m.tournament_id === t.id && m.participant_a && m.participant_b,
+          )
+          return { t, total: main.length, terisi: main.filter((m) => m.games.length > 0).length }
+        }
+        const ms = snapshot.americano_matches.filter((m) => m.tournament_id === t.id)
+        return {
+          t,
+          total: ms.length,
+          terisi: ms.filter((m) => m.score_a !== null && m.score_b !== null).length,
+        }
+      })
+  }, [snapshot, klubAktif])
+
+  if (!klubAktif) return null
 
   return (
     <div className="space-y-5">
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Klub" nilai={data.jumlahKlub} />
-        <Stat label={`Anggota ${klubAktif?.name ?? ''}`} nilai={data.jumlahAnggota} />
-        <Stat label="Turnamen aktif" nilai={data.turnamenAktif} warna="text-brand-300" />
+      <MulaiDariSini
+        klubId={klubId}
+        jumlahKlub={snapshot.clubs.length}
+        jumlahAnggota={data.jumlahAnggota}
+        jumlahTurnamen={data.turnamenAktif + data.turnamenSelesai}
+      />
+
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <Stat label="Anggota" nilai={data.jumlahAnggota} />
+        <Stat label="Turnamen berjalan" nilai={data.turnamenAktif} warna="text-brand-300" />
         <Stat label="Turnamen selesai" nilai={data.turnamenSelesai} warna="text-emerald-300" />
       </section>
 
       <section className="flex flex-wrap gap-2">
-        <a href={keHash('turnamen')}>
+        <a href={keHash({ halaman: 'turnamen', klubId, aksi: 'baru-turnamen' })}>
           <Tombol>+ Turnamen baru</Tombol>
         </a>
-        <a href={keHash('klub')}>
+        <a href={keHash({ halaman: 'anggota', klubId, aksi: 'baru-anggota' })}>
           <Tombol variasi="sekunder">+ Anggota</Tombol>
         </a>
-        <a href={keHash('leaderboard')}>
-          <Tombol variasi="sekunder">Lihat leaderboard</Tombol>
+        <a href={keHash({ halaman: 'leaderboard', klubId })}>
+          <Tombol variasi="sekunder">Leaderboard</Tombol>
         </a>
       </section>
+
+      {berjalan.length > 0 && (
+        <Kartu className="space-y-2">
+          <h2 className="text-sm font-semibold text-slate-200">Sedang berjalan</h2>
+          <ul className="space-y-2">
+            {berjalan.map(({ t, total, terisi }) => (
+              <li key={t.id}>
+                <a
+                  href={keHash({ halaman: 'detail', klubId, id: t.id })}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3 hover:bg-white/10"
+                >
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-medium text-slate-100">{t.name}</span>
+                    <span className="block text-xs text-slate-400">
+                      {t.type === 'knockout' ? 'Knockout' : 'Americano'} · skor {terisi} dari {total}
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-xs text-brand-200">
+                    {total === 0 ? 'atur peserta →' : terisi === total ? 'tandai selesai →' : 'isi skor →'}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </Kartu>
+      )}
 
       <section className="grid gap-3 sm:grid-cols-2">
         <Kartu>
@@ -116,31 +156,6 @@ export function Dashboard() {
             <p className="text-sm text-slate-400">Belum ada pertandingan yang dimainkan di klub ini.</p>
           )}
         </Kartu>
-      </section>
-
-      <section>
-        <h2 className="mb-2 text-sm font-semibold text-slate-200">Klub</h2>
-        <div className="flex flex-wrap gap-2">
-          {snapshot.clubs.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => pilihKlub(c.id)}
-              className={`flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm transition-colors ${
-                c.id === klubAktif?.id
-                  ? 'border-brand-400/50 bg-brand-500/15 text-brand-100'
-                  : 'border-white/10 bg-white/5 text-slate-200 hover:bg-white/10'
-              }`}
-            >
-              {c.logo_url ? (
-                <img src={c.logo_url} alt="" className="h-6 w-6 rounded-lg object-cover" />
-              ) : (
-                <span className="text-base">🏓</span>
-              )}
-              {c.name}
-            </button>
-          ))}
-        </div>
       </section>
     </div>
   )

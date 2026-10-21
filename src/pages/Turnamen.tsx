@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useApp } from '../state/AppContext'
 import { Input, Kartu, Kolom, Konfirmasi, Kosong, Lencana, Modal, Segmen, Tombol } from '../components/ui'
+import { Petunjuk } from '../components/Panduan'
+import { bersihkanAksi, keHash, type Target } from '../lib/router'
 import type { BestOf, KnockoutFormat, TargetPoints, Tournament, TournamentStatus } from '../lib/types'
 import { formatTanggal, todayISO, uid } from '../lib/utils'
-import { keHash, type NamaHalaman } from '../lib/router'
 import { pemenangTurnamen } from '../lib/knockout'
 import { americanoStandings } from '../lib/americano'
 
@@ -28,12 +29,18 @@ const FORM_AWAL: FormTurnamen = {
 }
 
 export function lencanaStatus(status: TournamentStatus) {
-  if (status === 'draft') return <Lencana>Draft</Lencana>
-  if (status === 'ongoing') return <Lencana warna="biru">Berlangsung</Lencana>
+  if (status === 'draft') return <Lencana>Belum dimulai</Lencana>
+  if (status === 'ongoing') return <Lencana warna="biru">Sedang berjalan</Lencana>
   return <Lencana warna="hijau">Selesai</Lencana>
 }
 
-export default function Turnamen({ pindah }: { pindah: (h: NamaHalaman, id?: string) => void }) {
+export default function Turnamen({
+  pindah,
+  aksi,
+}: {
+  pindah: (target: Target) => void
+  aksi?: string
+}) {
   const { snapshot, klubAktif, simpanTurnamen, hapusTurnamen, sibuk, pesan } = useApp()
   const [form, setForm] = useState<FormTurnamen | null>(null)
   const [galat, setGalat] = useState<string | null>(null)
@@ -73,6 +80,15 @@ export default function Turnamen({ pindah }: { pindah: (h: NamaHalaman, id?: str
     return { peserta, jumlahMatch, juara }
   }
 
+  // Tombol cepat dari Dashboard: #/turnamen?aksi=baru-turnamen
+  useEffect(() => {
+    if (aksi === 'baru-turnamen') {
+      setGalat(null)
+      setForm({ ...FORM_AWAL })
+      bersihkanAksi()
+    }
+  }, [aksi])
+
   const kirim = async () => {
     if (!form || !klubAktif) return
     if (!form.name.trim()) {
@@ -100,21 +116,23 @@ export default function Turnamen({ pindah }: { pindah: (h: NamaHalaman, id?: str
       best_of: form.type === 'knockout' ? form.best_of : null,
       target_points: form.type === 'americano' ? form.target_points : null,
       match_duration_min: form.type === 'americano' ? durasi : null,
+      date_end: null,
+      rounds_planned: null,
     })
     if (ok) {
       setForm(null)
-      pindah('detail', id)
+      pindah({ halaman: 'detail', klubId: klubAktif.id, id })
     }
   }
 
   if (!klubAktif) {
     return (
       <Kosong
-        judul="Belum ada klub"
-        pesan="Buat klub dulu di menu Klub & Anggota sebelum membuat turnamen."
+        judul="Klub tidak dipilih"
+        pesan="Buka salah satu klub dari daftar klub untuk melihat turnamennya."
         aksi={
-          <a href={keHash('klub')}>
-            <Tombol>Buka menu Klub</Tombol>
+          <a href={keHash({ halaman: 'pilih-klub' })}>
+            <Tombol>Pilih klub</Tombol>
           </a>
         }
       />
@@ -136,6 +154,21 @@ export default function Turnamen({ pindah }: { pindah: (h: NamaHalaman, id?: str
           + Turnamen baru
         </Tombol>
       </div>
+
+      <Petunjuk id="turnamen-jenis" judul="Bingung pilih jenis turnamen?">
+        <p>
+          <b>Knockout</b> — sistem gugur, kalah sekali langsung keluar. Paling cepat, cocok untuk satu
+          hari.
+        </p>
+        <p>
+          <b>Americano</b> — pasangan dirotasi tiap ronde, semua orang main banyak, peringkat dihitung
+          dari poin individu.
+        </p>
+        <p className="text-brand-50/70">
+          <b>Liga</b> — semua peserta saling bertemu dan mengumpulkan poin sepanjang liga (sedang
+          disiapkan).
+        </p>
+      </Petunjuk>
 
       <div className="flex flex-wrap gap-2">
         {(
@@ -195,7 +228,7 @@ export default function Turnamen({ pindah }: { pindah: (h: NamaHalaman, id?: str
                   <p className="mt-1 text-sm text-amber-200">🏆 Juara: {info.juara}</p>
                 )}
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <Tombol kecil onClick={() => pindah('detail', t.id)}>
+                  <Tombol kecil onClick={() => pindah({ halaman: 'detail', klubId: t.club_id, id: t.id })}>
                     Buka
                   </Tombol>
                   <Tombol kecil variasi="bahaya" onClick={() => setKonfirmasi(t.id)}>
@@ -256,6 +289,12 @@ export default function Turnamen({ pindah }: { pindah: (h: NamaHalaman, id?: str
             onPilih={(v) => form && setForm({ ...form, type: v })}
           />
         </Kolom>
+
+        <p className="rounded-xl border border-white/10 bg-white/5 p-2.5 text-xs text-slate-300">
+          {form?.type === 'americano'
+            ? 'Pasangan dirotasi setiap ronde. Peringkat dihitung dari total poin individu, bukan jumlah kemenangan.'
+            : 'Sistem gugur: kalah sekali langsung keluar. Bye dibuat otomatis kalau jumlah peserta bukan pangkat dua.'}
+        </p>
 
         {form === null ? null : form.type === 'knockout' ? (
           <>

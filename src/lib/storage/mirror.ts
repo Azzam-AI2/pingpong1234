@@ -43,6 +43,10 @@ export function pangkasYatim(s: Snapshot): Snapshot {
     americano_matches: s.americano_matches.filter(
       (m) => turnamenIds.has(m.tournament_id) && rondeIds.has(m.round_id),
     ),
+    league_rounds: s.league_rounds.filter((r) => turnamenIds.has(r.tournament_id)),
+    league_matches: s.league_matches.filter(
+      (m) => turnamenIds.has(m.tournament_id) && rondeIds.has(m.round_id),
+    ),
   }
 }
 

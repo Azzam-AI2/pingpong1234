@@ -13,12 +13,22 @@ Penyimpanan bisa **lokal di browser** (default) atau **online lewat Supabase Fre
 
 ## 1. Fitur
 
-| Menu | Isi |
+**Struktur navigasi: klub adalah hierarki tertinggi.** Halaman awal adalah **daftar klub**; setelah
+masuk ke sebuah klub, semua menu bekerja di dalam klub itu.
+
+| Layar | Isi |
 | --- | --- |
-| **Dashboard** | Jumlah klub & anggota, turnamen aktif/selesai, juara terbaru, top pemain, tombol cepat |
-| **Klub & Anggota** | CRUD klub (nama + logo) & anggota (nama, jenis kelamin, foto), multi-klub dengan klub aktif, konfirmasi khusus saat menghapus anggota yang sudah dipakai turnamen |
-| **Turnamen** | Daftar + filter status, pembuatan Knockout/Americano, halaman detail turnamen |
-| **Leaderboard** | Statistik per pemain: jumlah pertandingan, menang/kalah, win rate, gelar juara, riwayat pencapaian — **terpisah** antara Knockout dan Americano |
+| **Daftar klub** (`#/`) | Buat/edit/hapus klub, lihat ringkasan tiap klub (anggota, turnamen, juara terbaru), tombol **Masuk klub** |
+| **Beranda klub** (`#/klub/<id>`) | Panduan 3 langkah, jumlah anggota, turnamen berjalan/selesai, daftar turnamen yang sedang berjalan, juara terbaru, top pemain, tombol cepat |
+| **Anggota** (`#/klub/<id>/anggota`) | CRUD anggota (nama, jenis kelamin, foto) + peringatan saat menghapus anggota yang sudah dipakai turnamen |
+| **Turnamen** (`#/klub/<id>/turnamen`) | Daftar + filter status, pembuatan Knockout/Americano, halaman detail turnamen |
+| **Leaderboard** (`#/klub/<id>/leaderboard`) | Statistik pemain klub: jumlah pertandingan, menang/kalah, win rate, gelar, riwayat — **terpisah** Knockout dan Americano |
+| **Penyimpanan** (`#/penyimpanan`) | Status mode data (lokal/online) + panduan integrasi Supabase |
+
+Panduan ramah pengguna: kartu **"Mulai dari sini"** dengan progres 3 langkah (buat klub → tambah
+anggota → buat turnamen), penjelasan bahasa awam untuk tiap jenis turnamen, petunjuk yang bisa
+ditutup, dan kotak **"Langkah berikutnya"** di halaman turnamen (mis. "Skor terisi 3 dari 7
+pertandingan — ketuk kartu pertandingan untuk mengisi").
 
 **Knockout**: peserta Single (individu) atau Double (pasangan, ditentukan sebelum mulai), Best of 3/5,
 undi bracket acak, bye otomatis untuk jumlah peserta non-pangkat dua, skor per game dengan validasi,
@@ -111,14 +121,17 @@ src/
     types.ts        tipe data (nama field = nama kolom Supabase)
     knockout.ts     murni: undi bracket, bye, validasi skor, hitung ulang pemenang
     americano.ts    murni: jadwal rotasi pasangan, klasemen individu
-    stats.ts        murni: statistik pemain, juara, ringkasan dashboard
+    liga.ts         murni: jadwal round-robin, validasi skor target poin, klasemen liga
+    stats.ts        murni: statistik pemain, juara, ringkasan beranda
     storage/        backend penyimpanan: local.ts (localStorage), supabase.ts, mirror.ts
-    router.ts       router hash sederhana
+    router.ts       router hash berjenjang (klub sebagai hierarki tertinggi)
     gambar.ts       kompres foto/logo jadi data URL kecil
   state/AppContext.tsx   state global, aksi CRUD, transaksi ke backend, toast
-  components/       Layout, KnockoutView, AmericanoView, komponen UI
-  pages/            Dashboard, Klub, Turnamen, TurnamenDetail, Leaderboard, Supabase
+  components/       Layout, Panduan (panduan/petunjuk), KnockoutView, AmericanoView, komponen UI
+  pages/            PilihKlub, Dashboard (beranda klub), Anggota, Turnamen, TurnamenDetail,
+                    Leaderboard, Supabase
 supabase/schema.sql     skema + RLS untuk Supabase
+docs/mode-liga.md       spesifikasi & rencana fitur Liga
 ```
 
 Aturan main: semua jadwal, skor, klasemen, dan statistik **dihitung dari data tersimpan**, bukan angka statis.
@@ -163,6 +176,8 @@ URL tidak dapat dihubungi menampilkan banner galat merah, dan kunci `service_rol
 
 ## 8. Rencana berikutnya
 
-- **Mode Liga** — sudah ada spesifikasinya di [`docs/mode-liga.md`](docs/mode-liga.md), dikerjakan
-  setelah integrasi Supabase selesai. Akan dibuat sebagai modul terpisah (tabel `leagues`,
-  `league_rounds`, `league_matches`) tanpa mengubah Knockout dan Americano yang sudah jalan.
+- **Mode Liga** — spesifikasi di [`docs/mode-liga.md`](docs/mode-liga.md). Sebagian sudah disiapkan:
+  modul logika `src/lib/liga.ts` (jadwal round-robin, validasi skor target poin + deuce, klasemen
+  tanpa hitung ganda) beserta 9 unit test-nya, plus tipe data & tabel `leagues`/`league_rounds`/
+  `league_matches` pada skema. Yang belum: UI Liga (form, jadwal, input skor, klasemen) dan
+  integrasinya ke daftar turnamen.

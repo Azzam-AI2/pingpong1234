@@ -7,6 +7,7 @@ import { keHash } from '../lib/router'
 
 type Tampilan = 'knockout' | 'americano' | 'gabungan'
 
+/** Leaderboard klub: statistik pemain lintas turnamen di klub ini. */
 export default function Leaderboard() {
   const { statistik, klubAktif } = useApp()
   const [tampilan, setTampilan] = useState<Tampilan>('knockout')
@@ -18,19 +19,7 @@ export default function Leaderboard() {
     [statistik, urut, tampilan],
   )
 
-  if (!klubAktif) {
-    return (
-      <Kosong
-        judul="Belum ada klub"
-        pesan="Leaderboard dihitung per klub. Buat klub dan anggota dulu."
-        aksi={
-          <a href={keHash('klub')}>
-            <Tombol>Buka menu Klub</Tombol>
-          </a>
-        }
-      />
-    )
-  }
+  if (!klubAktif) return null
 
   const adaData = urutan.some(
     (s) => s.knockout.matches > 0 || s.americano.matches > 0 || s.knockout.riwayat.length > 0,
@@ -39,9 +28,12 @@ export default function Leaderboard() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-lg font-semibold text-slate-100">
-          Leaderboard <span className="text-sm font-normal text-slate-400">· {klubAktif.name}</span>
-        </h1>
+        <div>
+          <h1 className="text-lg font-semibold text-slate-100">Leaderboard</h1>
+          <p className="text-sm text-slate-400">
+            Statistik pemain {klubAktif.name}, dihitung dari turnamen yang sudah dimainkan.
+          </p>
+        </div>
         {tampilan !== 'americano' && (
           <select
             value={urut}
@@ -69,6 +61,11 @@ export default function Leaderboard() {
         <Kosong
           judul="Belum ada statistik"
           pesan="Statistik muncul otomatis setelah ada pertandingan yang dimainkan dan skornya diisi."
+          aksi={
+            <a href={keHash({ halaman: 'turnamen', klubId: klubAktif.id, aksi: 'baru-turnamen' })}>
+              <Tombol>Buat turnamen</Tombol>
+            </a>
+          }
         />
       ) : (
         <Kartu className="space-y-3">
@@ -163,8 +160,8 @@ export default function Leaderboard() {
             </table>
           </div>
           <p className="text-xs text-slate-400">
-            Statistik knockout dan Americano dihitung terpisah — poin Americano tidak pernah dihitung sebagai
-            kemenangan knockout.
+            Statistik knockout dan Americano dihitung terpisah — poin Americano tidak pernah dihitung
+            sebagai kemenangan knockout.
           </p>
         </Kartu>
       )}

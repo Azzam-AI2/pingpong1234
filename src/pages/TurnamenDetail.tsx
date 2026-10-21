@@ -3,17 +3,18 @@ import { useApp } from '../state/AppContext'
 import { Input, Kartu, Kolom, Konfirmasi, Kosong, Modal, Segmen, Tombol } from '../components/ui'
 import { KnockoutView } from '../components/KnockoutView'
 import { AmericanoView } from '../components/AmericanoView'
+import { LangkahBerikutnya } from '../components/Panduan'
 import { lencanaStatus } from './Turnamen'
 import type { BestOf, KnockoutFormat, TargetPoints, Tournament } from '../lib/types'
 import { formatTanggal } from '../lib/utils'
-import { keHash, type NamaHalaman } from '../lib/router'
+import { keHash, type Target } from '../lib/router'
 
 export default function TurnamenDetail({
   id,
   pindah,
 }: {
   id: string
-  pindah: (h: NamaHalaman, id?: string) => void
+  pindah: (target: Target) => void
 }) {
   const { snapshot, ubahTurnamen, hapusTurnamen, setStatus, sibuk, pesan } = useApp()
 
@@ -27,6 +28,21 @@ export default function TurnamenDetail({
   }, [snapshot, turnamen])
 
   const adaJadwal = jumlahMatch > 0
+
+  const progres = useMemo(() => {
+    if (!turnamen) return { total: 0, terisi: 0 }
+    if (turnamen.type === 'knockout') {
+      const main = snapshot.knockout_matches.filter(
+        (m) => m.tournament_id === turnamen.id && m.participant_a && m.participant_b,
+      )
+      return { total: main.length, terisi: main.filter((m) => m.games.length > 0).length }
+    }
+    const ms = snapshot.americano_matches.filter((m) => m.tournament_id === turnamen.id)
+    return {
+      total: ms.length,
+      terisi: ms.filter((m) => m.score_a !== null && m.score_b !== null).length,
+    }
+  }, [snapshot, turnamen])
 
   const [modalEdit, setModalEdit] = useState<{
     name: string
@@ -45,8 +61,8 @@ export default function TurnamenDetail({
         judul="Turnamen tidak ditemukan"
         pesan="Turnamen ini mungkin sudah dihapus atau tautannya salah."
         aksi={
-          <a href={keHash('turnamen')}>
-            <Tombol>Kembali ke daftar turnamen</Tombol>
+          <a href={keHash({ halaman: 'pilih-klub' })}>
+            <Tombol>Kembali ke daftar klub</Tombol>
           </a>
         }
       />
@@ -84,7 +100,10 @@ export default function TurnamenDetail({
 
   return (
     <div className="space-y-4">
-      <a href={keHash('turnamen')} className="inline-block text-sm text-slate-400 hover:text-slate-200">
+      <a
+        href={keHash({ halaman: 'turnamen', klubId: turnamen.club_id })}
+        className="inline-block text-sm text-slate-400 hover:text-slate-200"
+      >
         ← Semua turnamen
       </a>
 
@@ -153,6 +172,46 @@ export default function TurnamenDetail({
           </Tombol>
         </div>
       </Kartu>
+
+      {turnamen.status !== 'finished' && (
+        <LangkahBerikutnya
+          isi={
+            progres.total === 0 ? (
+              turnamen.type === 'knockout' ? (
+                <>
+                  Belum ada pertandingan. Pilih peserta di bawah, lalu tekan <b>🎲 Undi bracket acak</b>.
+                </>
+              ) : (
+                <>
+                  Belum ada jadwal. Pilih pemain di bawah, lalu tekan{' '}
+                  <b>🎲 Buat jadwal rotasi pasangan</b>.
+                </>
+              )
+            ) : (
+              <>
+                Skor terisi <b>{progres.terisi}</b> dari <b>{progres.total}</b> pertandingan.{' '}
+                {progres.total - progres.terisi > 0
+                  ? 'Ketuk kartu pertandingan di bawah untuk mengisi skornya.'
+                  : 'Tandai turnamen selesai kalau sudah tidak ada pertandingan lagi.'}
+              </>
+            )
+          }
+        />
+      )}
+
+      {turnamen.status === 'finished' && (
+        <LangkahBerikutnya
+          judul="Turnamen selesai"
+          isi={
+            <>
+              Juara sudah ditentukan{progres.total > 0 ? ` dari ${progres.total} pertandingan` : ''}. Lihat
+              statistik dan gelar pemain klub di Leaderboard.
+            </>
+          }
+          teksTombol="Buka leaderboard"
+          tautan={keHash({ halaman: 'leaderboard', klubId: turnamen.club_id })}
+        />
+      )}
 
       {turnamen.type === 'knockout' ? (
         <KnockoutView turnamen={turnamen} />
@@ -265,7 +324,7 @@ export default function TurnamenDetail({
         onYa={async () => {
           setKonfirmasiHapus(false)
           const ok = await hapusTurnamen(turnamen.id)
-          if (ok) pindah('turnamen')
+          if (ok) pindah({ halaman: 'turnamen', klubId: turnamen.club_id })
         }}
       />
     </div>

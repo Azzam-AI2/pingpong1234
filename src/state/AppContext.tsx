@@ -51,6 +51,8 @@ export interface PayloadTurnamen {
   best_of: Tournament['best_of']
   target_points: Tournament['target_points']
   match_duration_min: number | null
+  date_end: string | null
+  rounds_planned: number | null
 }
 
 interface AppContextValue {
@@ -61,14 +63,15 @@ interface AppContextValue {
   masalahKonfigurasi: string | null
   snapshot: Snapshot
   klubAktif: Club | null
+  klubTerakhir: Club | null
   statistik: StatAnggota[]
   toasts: Toast[]
   sibuk: boolean
-  pilihKlub: (id: string) => void
+  pilihKlub: (id: string | null) => void
   muatUlang: () => Promise<void>
   tutupToast: (id: string) => void
   pesan: (teks: string, jenis?: JenisToast) => void
-  simpanKlub: (d: { id?: string; name: string; logo_url: string | null }) => Promise<boolean>
+  simpanKlub: (d: { id?: string; name: string; logo_url: string | null }) => Promise<string | null>
   hapusKlub: (id: string) => Promise<boolean>
   simpanAnggota: (d: {
     id?: string
@@ -188,31 +191,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const klubAktif = useMemo(() => {
-    if (!klubs.length) return null
-    const ketemu = klubs.find((c) => c.id === klubAktifId)
-    return ketemu ?? klubs[0]
+    if (!klubAktifId) return null
+    return klubs.find((c) => c.id === klubAktifId) ?? null
   }, [klubs, klubAktifId])
 
-  useEffect(() => {
-    if (!klubAktif) return
-    if (klubAktif.id !== klubAktifId) {
-      setKlubAktifId(klubAktif.id)
-      try {
-        localStorage.setItem(KUNCI_KLUB_AKTIF, klubAktif.id)
-      } catch {
-        /* preferensi UI saja */
-      }
-    }
-  }, [klubAktif, klubAktifId])
-
-  const pilihKlub = useCallback((id: string) => {
+  const pilihKlub = useCallback((id: string | null) => {
     setKlubAktifId(id)
     try {
-      localStorage.setItem(KUNCI_KLUB_AKTIF, id)
+      if (id) localStorage.setItem(KUNCI_KLUB_AKTIF, id)
+      else localStorage.removeItem(KUNCI_KLUB_AKTIF)
     } catch {
       /* preferensi UI saja */
     }
   }, [])
+
+  const klubTerakhir = useMemo(() => {
+    if (!klubAktifId) return null
+    return klubs.find((c) => c.id === klubAktifId) ?? null
+  }, [klubs, klubAktifId])
 
   const statistik = useMemo(() => {
     if (!klubAktif) return []
@@ -231,13 +227,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const nama = d.name.trim()
       if (!nama) {
         pesanRef.current('Nama klub wajib diisi.', 'error')
-        return false
+        return null
       }
       if (d.id) {
-        return jalankan(
+        const ok = await jalankan(
           [{ table: 'clubs', type: 'update', id: d.id, patch: { name: nama, logo_url: d.logo_url } }],
           'Perubahan klub disimpan.',
         )
+        return ok ? d.id : null
       }
       const row: Club = {
         id: uid(),
@@ -247,7 +244,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       const ok = await jalankan([{ table: 'clubs', type: 'insert', row }], 'Klub ditambahkan.')
       if (ok) pilihKlub(row.id)
-      return ok
+      return ok ? row.id : null
     },
     [jalankan, pilihKlub],
   )
@@ -369,6 +366,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         match_duration_min: d.type === 'americano' ? d.match_duration_min : null,
         status: 'draft',
         created_at: new Date().toISOString(),
+        date_end: d.date_end,
+        rounds_planned: d.rounds_planned,
       }
       return jalankan([{ table: 'tournaments', type: 'insert', row }], `Turnamen "${nama}" dibuat.`)
     },
@@ -582,6 +581,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     masalahKonfigurasi,
     snapshot,
     klubAktif,
+    klubTerakhir,
     statistik,
     toasts,
     sibuk,
