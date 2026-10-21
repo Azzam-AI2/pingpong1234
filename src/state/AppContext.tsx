@@ -23,7 +23,7 @@ import type {
 } from '../lib/types'
 import { pilihBackend, type Backend, type InfoPenyimpanan, type Op } from '../lib/storage'
 import { snapshotKosong, terapkanKeSnapshot } from '../lib/storage/mirror'
-import { generateSchedule, suggestRounds } from '../lib/americano'
+import { generateSchedule, suggestRounds, validasiSkorAmericano } from '../lib/americano'
 import {
   buatJadwalLiga as susunJadwalLiga,
   ligaSelesai,
@@ -590,6 +590,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       for (const s of [skorA, skorB]) {
         if (s !== null && (!Number.isInteger(s) || s < 0 || s > 99)) {
           pesanRef.current('Skor harus bilangan bulat 0-99.', 'error')
+          return false
+        }
+      }
+      if (skorA !== null && skorB !== null) {
+        // Target poin mengikuti konfigurasi kompetisi (mis. padel 15/16, pingpong 21).
+        const target = t.target_points ?? 21
+        const salah = validasiSkorAmericano(skorA, skorB, target)
+        if (salah) {
+          pesanRef.current(salah, 'error')
           return false
         }
       }

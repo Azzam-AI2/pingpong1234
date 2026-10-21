@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { validateGames } from '../knockout'
 import { validasiSkorLiga } from '../liga'
+import { validasiSkorAmericano } from '../americano'
 import { profilOlahraga, pemenangPertandingan } from '../sports'
 
 /**
@@ -70,6 +71,20 @@ describe('padel knockout memakai aturan set', () => {
     const games = [{ a: 4, b: 6 }, { a: 3, b: 6 }]
     expect(validateGames(games, 3, aturanPadel).ok).toBe(true)
     expect(pemenangPertandingan(aturanPadel, games, 3)).toBe('b')
+  })
+})
+
+describe('americano: target poin mengikuti konfigurasi kompetisi', () => {
+  it('menerima skor sampai target dan menolak di atasnya', () => {
+    expect(validasiSkorAmericano(15, 12, 15)).toBeNull()
+    expect(validasiSkorAmericano(15, 15, 15)).toBeNull()
+    expect(validasiSkorAmericano(16, 12, 15)).toContain('maksimal 15')
+    expect(validasiSkorAmericano(21, 18, 21)).toBeNull()
+  })
+
+  it('menolak skor negatif dan bukan bilangan bulat', () => {
+    expect(validasiSkorAmericano(-1, 5, 15)).toContain('negatif')
+    expect(validasiSkorAmericano(10.5, 5, 15)).toContain('bilangan bulat')
   })
 })
 

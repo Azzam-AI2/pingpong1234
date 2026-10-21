@@ -1,6 +1,18 @@
 import type { AmericanoMatch } from './types'
 import { shuffle } from './utils'
 
+/**
+ * Validasi skor satu pertandingan Americano.
+ * Target poin mengikuti konfigurasi kompetisi (tidak lagi dipatok 0-99),
+ * sehingga padel (target 15/16/21) dan pingpong memakai aturan yang sama.
+ */
+export function validasiSkorAmericano(skorA: number, skorB: number, target: number): string | null {
+  if (!Number.isInteger(skorA) || !Number.isInteger(skorB)) return 'Skor harus bilangan bulat.'
+  if (skorA < 0 || skorB < 0) return 'Skor tidak boleh negatif.'
+  if (skorA > target || skorB > target) return `Skor maksimal ${target} poin per pertandingan.`
+  return null
+}
+
 export interface AmerTable {
   tableNo: number
   teamA: string[]
