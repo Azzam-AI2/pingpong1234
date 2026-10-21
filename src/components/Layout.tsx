@@ -5,6 +5,7 @@ import { keHash, type NamaHalaman } from '../lib/router'
 import { Lencana } from './ui'
 import { keluar } from '../lib/auth'
 import { useEmailSesi } from '../lib/useSesi'
+import { NAMA_APLIKASI } from '../lib/merek'
 
 interface ItemMenu {
   halaman: NamaHalaman
@@ -77,7 +78,7 @@ export function Layout({
               🏓
             </span>
             <span className="truncate text-base font-bold tracking-tight text-ink">
-              Pingpong Club Manager
+              {NAMA_APLIKASI}
             </span>
             <span className="ml-2 hidden shrink-0 text-sm text-ink-muted sm:block">
               {BAGIAN[halaman]}

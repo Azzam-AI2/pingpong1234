@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Kartu, Input, Kolom, Tombol } from '../components/ui'
 import { masuk, mintaResetSandi } from '../lib/auth'
+import { NAMA_APLIKASI, SLOGAN_APLIKASI } from '../lib/merek'
 
 /**
  * Layar masuk. Akun tidak dibuat di sini: pemilik/admin klub mengundang lewat
@@ -39,8 +40,8 @@ export default function Masuk() {
       <div className="flex items-center gap-3">
         <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-600 text-xl">🏓</span>
         <div>
-          <p className="text-base font-bold tracking-tight text-ink">Pingpong Club Manager</p>
-          <p className="text-xs text-ink-muted">Kelola klub, turnamen, dan skor</p>
+          <p className="text-base font-bold tracking-tight text-ink">{NAMA_APLIKASI}</p>
+          <p className="text-xs text-ink-muted">{SLOGAN_APLIKASI}</p>
         </div>
       </div>
 
