@@ -33,6 +33,7 @@ import {
 } from '../lib/liga'
 import { drawBracket, pemenangTurnamen, recompute, validateGames } from '../lib/knockout'
 import { aturanDariSettings } from '../lib/sports'
+import { klienAuth, modeOnline } from '../lib/auth'
 import { hitungStatistikKlub, type StatAnggota } from '../lib/stats'
 import { uid } from '../lib/utils'
 
@@ -273,11 +274,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
         // Jenis olahraga hanya ditentukan saat klub dibuat (tidak diubah lewat edit).
         sport_slug: d.sport_slug ?? 'table_tennis',
       }
+
+      // Mode online: pembuatan klub + keanggotaan owner harus atomik di server.
+      // Tanpa ini, klub baru tidak punya anggota sehingga hilang setelah refresh.
+      if (modeOnline()) {
+        const klien = klienAuth()
+        if (!klien) {
+          pesanRef.current('Supabase belum dikonfigurasi.', 'error')
+          return null
+        }
+        const { data, error } = await klien.rpc('buat_klub', {
+          p_name: nama,
+          p_logo: d.logo_url,
+          p_sport_slug: d.sport_slug ?? 'table_tennis',
+        })
+        if (error) {
+          pesanRef.current(`Gagal membuat klub: ${error.message}`, 'error')
+          return null
+        }
+        await muatUlang()
+        const idBaru = String(data)
+        pilihKlub(idBaru)
+        pesanRef.current('Klub ditambahkan.', 'sukses')
+        return idBaru
+      }
+
       const ok = await jalankan([{ table: 'clubs', type: 'insert', row }], 'Klub ditambahkan.')
       if (ok) pilihKlub(row.id)
       return ok ? row.id : null
     },
-    [jalankan, pilihKlub],
+    [jalankan, pilihKlub, muatUlang],
   )
 
   const hapusKlub = useCallback<AppContextValue['hapusKlub']>(
