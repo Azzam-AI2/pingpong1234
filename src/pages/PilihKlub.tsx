@@ -8,7 +8,15 @@ import { formatTanggal } from '../lib/utils'
 import { pemenangTurnamen } from '../lib/knockout'
 import { DaftarUndangan } from './Undangan'
 import { PendaftarMasuk } from '../components/PendaftarMasuk'
-import { bisaAturKlub, bisaKelola, keluar, klubSaya, labelPeran, modeOnline } from '../lib/auth'
+import {
+  bisaAturKlub,
+  bolehBuatKlub as cekBolehBuatKlub,
+  bisaKelola,
+  keluar,
+  klubSaya,
+  labelPeran,
+  modeOnline,
+} from '../lib/auth'
 import { pastikanAntrean } from '../lib/pendaftaran'
 
 /**
@@ -21,7 +29,20 @@ export default function PilihKlub({ aksi, pindah }: { aksi?: string; pindah: (t:
   const [konfirmasi, setKonfirmasi] = useState<string | null>(null)
   const [peran, setPeran] = useState<Record<string, string>>({})
   const [peranSiap, setPeranSiap] = useState(false)
+  const [bolehBuat, setBolehBuat] = useState(false)
   const daring = modeOnline()
+
+  // Apakah akun ini boleh membuat klub? Tanyakan ke server sekali saat halaman dibuka.
+  useEffect(() => {
+    if (!daring) return
+    let hidup = true
+    void cekBolehBuatKlub().then((v) => {
+      if (hidup) setBolehBuat(v)
+    })
+    return () => {
+      hidup = false
+    }
+  }, [daring])
 
   // Peran dibaca dari database (RPC my_clubs), bukan dari tampilan, supaya
   // tombol yang muncul mengikuti izin yang benar-benar dimiliki pengguna.
@@ -44,7 +65,8 @@ export default function PilihKlub({ aksi, pindah }: { aksi?: string; pindah: (t:
   }, [daring])
 
   const bolehAtur = (clubId: string) => !daring || bisaAturKlub(peran[clubId] ?? '')
-  const bolehBuatKlub = !daring || Object.values(peran).some((r) => bisaAturKlub(r))
+  // Hak membuat klub ditentukan server (platform admin / org_owner), bukan tebakan UI.
+  const bolehBuatKlub = !daring || bolehBuat
 
   useEffect(() => {
     if (aksi === 'baru-klub') {
@@ -97,9 +119,15 @@ export default function PilihKlub({ aksi, pindah }: { aksi?: string; pindah: (t:
         <>
           <Kosong
             judul="Belum ada klub"
-            pesan="Klub adalah wadah tertinggi: di dalamnya ada anggota, turnamen, dan leaderboard. Buat satu klub dulu, ya."
+            pesan={
+              bolehBuatKlub
+                ? 'Klub adalah wadah tertinggi: di dalamnya ada anggota, turnamen, dan leaderboard. Buat satu klub dulu, ya.'
+                : 'Klub dikelola oleh pemilik platform atau pemilik organisasi. Minta mereka membuatkan klub untukmu, lalu akunmu ditugaskan di sana.'
+            }
             aksi={
-              <Tombol onClick={() => setForm({ name: '', logo_url: null })}>Buat klub pertama</Tombol>
+              bolehBuatKlub ? (
+                <Tombol onClick={() => setForm({ name: '', logo_url: null })}>Buat klub pertama</Tombol>
+              ) : undefined
             }
           />
           <Petunjuk id="pilih-klub-dasar" judul="Urutan pemakaian">

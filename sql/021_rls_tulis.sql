@@ -46,13 +46,36 @@ create policy profil_ubah_sendiri on public.profiles
   using (user_id = auth.uid())
   with check (user_id = auth.uid() and status = 'active');
 
+-- ---------------------------------------------------------------- helper: hak membuat klub
+-- Pembuatan klub adalah tindakan administratif: hanya platform admin atau
+-- org_owner (payung organisasi). Pengguna biasa/anggota tidak boleh.
+create or replace function public.boleh_buat_klub()
+returns boolean
+language sql stable security definer
+set search_path = public, pg_temp
+as $$
+  select public.is_platform_admin()
+      or exists (
+        select 1 from public.organization_members om
+        join public.profiles p on p.user_id = om.user_id
+        where om.user_id = auth.uid()
+          and om.status = 'active'
+          and p.status = 'active'
+          and om.role = 'org_owner'
+      )
+$$;
+
+revoke all on function public.boleh_buat_klub() from public, anon;
+grant execute on function public.boleh_buat_klub() to authenticated;
+
 -- ---------------------------------------------------------------- klub
--- Siapa pun yang login boleh membuat klub (identitas pembuat dicatat bila dikirim),
--- tetapi tidak otomatis mendapat akses ke klub lain.
 drop policy if exists klub_buat on public.clubs;
 create policy klub_buat on public.clubs
   for insert to authenticated
-  with check (created_by is null or created_by = auth.uid());
+  with check (
+    public.boleh_buat_klub()
+    and (created_by is null or created_by = auth.uid())
+  );
 
 drop policy if exists klub_ubah on public.clubs;
 create policy klub_ubah on public.clubs

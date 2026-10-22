@@ -195,6 +195,18 @@ export async function klubSaya(): Promise<KlubSaya[]> {
   return (data ?? []) as KlubSaya[]
 }
 
+/**
+ * Apakah pengguna berhak membuat klub baru (platform admin atau org_owner).
+ * Dicek di server; UI hanya mengikuti hasilnya.
+ */
+export async function bolehBuatKlub(): Promise<boolean> {
+  const klien = klienAuth()
+  if (!klien) return true // mode lokal: tanpa pembatasan
+  const { data, error } = await klien.rpc('boleh_buat_klub')
+  if (error) return false
+  return data === true
+}
+
 // ------------------------------------------------------------------ util kecil
 
 /** Sisa hari sampai undangan kedaluwarsa (0 = sudah lewat). */
