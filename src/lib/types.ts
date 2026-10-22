@@ -27,6 +27,8 @@ export interface Member {
   /** Status keanggotaan: nonaktif = masih tersimpan (mis. sudah tidak ikut main). */
   aktif: boolean
   created_at: string
+  /** Akun login yang tertaut ke anggota ini (null = hanya data, tanpa akun). */
+  user_id?: string | null
 }
 
 export interface Tournament {

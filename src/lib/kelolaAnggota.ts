@@ -61,6 +61,34 @@ export function opsiPeran(pengubah: string): string[] {
     : ['official', 'member']
 }
 
+/**
+ * Rencanakan penautan anggota (roster) ke akun klub berdasarkan email.
+ *
+ * Hasil:
+ *  - `user_id`  : akun ditemukan dan siap ditautkan
+ *  - `galat`    : akun sudah tertaut ke anggota lain di klub yang sama
+ *  - `perluUndang`: email belum punya akun -> simpan sebagai data, lalu kirim undangan
+ */
+export function rencanakanTautan(
+  akun: AnggotaAkun[],
+  roster: { id: string; user_id?: string | null }[],
+  email: string,
+  idSekarang?: string,
+): { user_id?: string; galat?: string; perluUndang?: boolean } {
+  const surel = email.trim().toLowerCase()
+  if (!surel) return {}
+
+  const cocok = akun.find((a) => a.email.trim().toLowerCase() === surel)
+  if (!cocok) return { perluUndang: true }
+
+  const bentrok = roster.find((m) => m.user_id === cocok.user_id && m.id !== idSekarang)
+  if (bentrok) {
+    return { galat: 'Akun itu sudah tertaut ke anggota lain di klub ini.' }
+  }
+
+  return { user_id: cocok.user_id }
+}
+
 export function labelStatusAnggota(status: string): string {
   switch (status) {
     case 'active':

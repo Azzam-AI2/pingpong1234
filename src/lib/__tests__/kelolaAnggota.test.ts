@@ -3,6 +3,7 @@ import {
   bolehKelolaPeran,
   labelStatusAnggota,
   opsiPeran,
+  rencanakanTautan,
   tombolPeranNonaktif,
 } from '../kelolaAnggota'
 
@@ -16,6 +17,47 @@ describe('opsi peran di UI mengikuti aturan database', () => {
     expect(opsiPeran('admin')).toEqual(['official', 'member'])
     expect(opsiPeran('member')).toEqual(['official', 'member'])
     expect(opsiPeran('')).toEqual(['official', 'member'])
+  })
+})
+
+describe('penautan anggota ke akun (hibrida)', () => {
+  const akun = [
+    {
+      user_id: 'u-1',
+      email: 'budi@contoh.com',
+      nama: 'Budi',
+      role: 'member',
+      status: 'active',
+      joined_at: null,
+    },
+  ]
+
+  it('email cocok -> akun ditautkan', () => {
+    const r = rencanakanTautan(akun, [], 'Budi@Contoh.com ')
+    expect(r.user_id).toBe('u-1')
+    expect(r.perluUndang).toBeFalsy()
+    expect(r.galat).toBeUndefined()
+  })
+
+  it('email belum punya akun -> perlu undangan', () => {
+    const r = rencanakanTautan(akun, [], 'baru@contoh.com')
+    expect(r.perluUndang).toBe(true)
+    expect(r.user_id).toBeUndefined()
+  })
+
+  it('akun sudah tertaut ke anggota lain -> ditolak', () => {
+    const r = rencanakanTautan(akun, [{ id: 'm-1', user_id: 'u-1' }], 'budi@contoh.com', 'm-2')
+    expect(r.galat).toContain('sudah tertaut')
+  })
+
+  it('anggota yang sama saat edit tidak dianggap bentrok', () => {
+    const r = rencanakanTautan(akun, [{ id: 'm-1', user_id: 'u-1' }], 'budi@contoh.com', 'm-1')
+    expect(r.user_id).toBe('u-1')
+    expect(r.galat).toBeUndefined()
+  })
+
+  it('email kosong -> tidak mengubah tautan', () => {
+    expect(rencanakanTautan(akun, [{ id: 'm-1', user_id: 'u-1' }], '   ')).toEqual({})
   })
 })
 

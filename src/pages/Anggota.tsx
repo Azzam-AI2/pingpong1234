@@ -7,6 +7,7 @@ import {
   Kolom,
   Konfirmasi,
   Kosong,
+  Lencana,
   Modal,
   Pilih,
   Segmen,
@@ -19,6 +20,9 @@ import type { Gender, Member } from '../lib/types'
 import { formatTanggal, validasiNama } from '../lib/utils'
 import { KelolaUndangan } from '../components/KelolaUndangan'
 import { KelolaAnggotaAkun } from '../components/KelolaAnggotaAkun'
+import { anggotaAkun, rencanakanTautan } from '../lib/kelolaAnggota'
+import { panggilUndangan } from '../lib/undanganApi'
+import { modeOnline } from '../lib/auth'
 
 interface FormAnggota {
   id?: string
@@ -27,6 +31,8 @@ interface FormAnggota {
   photo_url: string | null
   aktif: boolean
   duplikat?: boolean
+  /** Email akun login yang akan ditautkan (opsional). */
+  email?: string
 }
 
 const FORM_KOSONG: FormAnggota = { name: '', gender: 'L', photo_url: null, aktif: true }
@@ -61,7 +67,7 @@ function TombolIkon({
 
 /** Daftar anggota klub: pencarian, filter, dan aksi per baris. */
 export default function Anggota({ aksi }: { aksi?: string }) {
-  const { snapshot, klubAktif, simpanAnggota, hapusAnggota, pemakaianAnggota, sibuk } = useApp()
+  const { snapshot, klubAktif, simpanAnggota, hapusAnggota, pemakaianAnggota, sibuk, pesan } = useApp()
 
   const [form, setForm] = useState<FormAnggota | null>(null)
   const [galat, setGalat] = useState<string | null>(null)
@@ -135,6 +141,26 @@ export default function Anggota({ aksi }: { aksi?: string }) {
       return
     }
     setGalat(null)
+    const surel = (form.email ?? '').trim().toLowerCase()
+    let userId: string | undefined
+    let perluUndang = false
+
+    if (surel && modeOnline()) {
+      const akun = await anggotaAkun(klubAktif.id)
+      const rencana = rencanakanTautan(
+        akun,
+        snapshot.members.filter((m) => m.club_id === klubAktif.id),
+        surel,
+        form.id,
+      )
+      if (rencana.galat) {
+        setGalat(rencana.galat)
+        return
+      }
+      userId = rencana.user_id
+      perluUndang = Boolean(rencana.perluUndang)
+    }
+
     const ok = await simpanAnggota({
       id: form.id,
       club_id: klubAktif.id,
@@ -142,8 +168,27 @@ export default function Anggota({ aksi }: { aksi?: string }) {
       gender: form.gender,
       photo_url: form.photo_url,
       aktif: form.aktif,
+      user_id: userId,
     })
-    if (ok) setForm(null)
+    if (!ok) return
+    setForm(null)
+
+    if (perluUndang) {
+      const hasil = await panggilUndangan({
+        aksi: 'undang',
+        club_id: klubAktif.id,
+        email: surel,
+        role: 'member',
+      })
+      pesan(
+        hasil.ok
+          ? (hasil.pesan ?? `Undangan dikirim ke ${surel}.`)
+          : `Anggota tersimpan, tetapi undangan gagal: ${hasil.pesan ?? 'tidak diketahui'}`,
+        hasil.ok ? 'sukses' : 'error',
+      )
+    } else if (userId) {
+      pesan('Anggota ditambahkan dan ditautkan ke akunnya.', 'sukses')
+    }
   }
 
   const terpilih = snapshot.members.find((m) => m.id === konfirmasi)
@@ -261,6 +306,7 @@ export default function Anggota({ aksi }: { aksi?: string }) {
 
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[15px] font-semibold text-ink">{m.name}</p>
+                  {m.user_id && <Lencana warna="hijau">punya akun</Lencana>}
                   <p className="truncate text-[13px] text-ink-muted">
                     {m.gender === 'L' ? 'Laki-laki' : 'Perempuan'} · Terdaftar{' '}
                     {formatTanggal(m.created_at)}
@@ -331,6 +377,17 @@ export default function Anggota({ aksi }: { aksi?: string }) {
               { nilai: 'P', label: 'Perempuan' },
             ]}
             onPilih={(v) => form && setForm({ ...form, gender: v })}
+          />
+        </Kolom>
+        <Kolom
+          label="Email akun (opsional)"
+          petunjuk="Kalau diisi: akun yang sudah ada langsung ditautkan; kalau belum punya akun, undangan dikirim ke email itu."
+        >
+          <Input
+            type="email"
+            value={form?.email ?? ''}
+            onChange={(e) => form && setForm({ ...form, email: e.target.value })}
+            placeholder="nama@contoh.com"
           />
         </Kolom>
         <Kolom label="Status keanggotaan" petunjuk="Nonaktif = masih tersimpan, tapi tidak ikut dihitung sebagai anggota aktif.">
