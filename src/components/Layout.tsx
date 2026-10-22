@@ -35,6 +35,12 @@ const MENU: ItemMenu[] = [
     label: 'Peringkat',
     jalur: 'M4 20h4v-8H4v8Zm6 0h4V4h-4v16Zm6 0h4v-11h-4v11Z',
   },
+  {
+    halaman: 'akun',
+    label: 'Akun',
+    jalur:
+      'M12 2a6 6 0 0 0-6 6c0 2.2 1.2 4.1 3 5.2V22h4v-3h2v-3h2v-3.8A6 6 0 0 0 12 2Zm0 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6Z',
+  },
 ]
 
 /** Label bagian yang tampil di bilah atas, mengikuti gaya aplikasi rujukan. */
@@ -45,6 +51,7 @@ const BAGIAN: Record<NamaHalaman, string> = {
   turnamen: 'Turnamen',
   detail: 'Turnamen',
   leaderboard: 'Peringkat',
+  akun: 'Akun',
   undangan: 'Undangan',
   'atur-sandi': 'Atur sandi',
   daftar: 'Daftar',

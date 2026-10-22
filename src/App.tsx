@@ -9,6 +9,7 @@ import Anggota from './pages/Anggota'
 import Turnamen from './pages/Turnamen'
 import TurnamenDetail from './pages/TurnamenDetail'
 import Leaderboard from './pages/Leaderboard'
+import AkunKlub from './pages/AkunKlub'
 import Supabase from './pages/Supabase'
 import Undangan from './pages/Undangan'
 import Masuk from './pages/Masuk'
@@ -74,6 +75,7 @@ function Isi() {
           <Kosong judul="Turnamen tidak dipilih" pesan="Buka daftar turnamen untuk memilih salah satu." />
         ))}
       {rute.halaman === 'leaderboard' && <Leaderboard />}
+      {rute.halaman === 'akun' && <AkunKlub />}
     </Layout>
   )
 }

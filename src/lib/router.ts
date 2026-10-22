@@ -20,6 +20,7 @@ export type NamaHalaman =
   | 'turnamen'
   | 'detail'
   | 'leaderboard'
+  | 'akun'
   | 'undangan'
   | 'atur-sandi'
   | 'daftar'
@@ -75,6 +76,8 @@ function parse(hash: string): Rute {
           : { halaman: 'turnamen', klubId, aksi }
       case 'leaderboard':
         return { halaman: 'leaderboard', klubId, aksi }
+      case 'akun':
+        return { halaman: 'akun', klubId, aksi }
       default:
         return { halaman: 'beranda', klubId, aksi }
     }
@@ -110,6 +113,8 @@ export function keHash(target: Target): string {
           : `#/${q}`
     case 'leaderboard':
       return target.klubId ? `#/klub/${target.klubId}/leaderboard${q}` : `#/${q}`
+    case 'akun':
+      return target.klubId ? `#/klub/${target.klubId}/akun${q}` : `#/${q}`
     default:
       return `#/${q}`
   }
